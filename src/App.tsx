@@ -1,11 +1,18 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes/route';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false },
+    mutations: { retry: 0 },
+  },
+});
+
 export function App() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-gray-100 px-6">
-      <section className="text-center">
-        <p className="text-sm font-medium text-primary">Checkpoint 2</p>
-        <h1 className="mt-2 text-4xl font-bold text-black">WHYNE</h1>
-        <p className="mt-3 text-base text-gray-800">나만의 와인 창고</p>
-      </section>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   );
 }
