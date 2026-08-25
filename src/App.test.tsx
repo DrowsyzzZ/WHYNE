@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { App } from './App';
 
+vi.mock('./lib/supabase', () => ({ isSupabaseConfigured: false, supabase: null }));
+
 describe('App', () => {
   it('renders the WHYNE title', () => {
     window.history.pushState({}, '', '/WHYNE/');

@@ -1,7 +1,15 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout, AuthLayout } from '../components/layout';
-import { NotFoundPage, PlaceholderPage } from '../pages';
+import { NotFoundPage } from '../pages/NotFoundPage';
+import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { RequireAuth } from './RequireAuth';
+
+// Route components intentionally live here so authentication pages stay code-split.
+// eslint-disable-next-line react-refresh/only-export-components
+const LoginPage = lazy(() => import('../pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+// eslint-disable-next-line react-refresh/only-export-components
+const SignupPage = lazy(() => import('../pages/SignupPage').then((module) => ({ default: module.SignupPage })));
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
@@ -14,7 +22,7 @@ export const router = createBrowserRouter([
     { path: '*', element: <NotFoundPage /> },
   ] },
   { element: <AuthLayout />, children: [
-    { path: 'login', element: <PlaceholderPage title="로그인" /> },
-    { path: 'signup', element: <PlaceholderPage title="회원가입" /> },
+    { path: 'login', element: <LoginPage /> },
+    { path: 'signup', element: <SignupPage /> },
   ] },
 ], { basename });
