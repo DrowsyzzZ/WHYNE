@@ -1,6 +1,7 @@
 export * from './brand/Logo';
 export * from './cards/ReviewCard';
 export * from './cards/WineCard';
+export * from './layout';
 export * from './ui/AsyncState';
 export * from './ui/Button';
 export * from './ui/Chip';
