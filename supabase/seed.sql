@@ -2,8 +2,8 @@
 -- UUIDs are deterministic for repeatable local resets. Replace metadata with licensed production data later.
 -- Local-only relationship fixtures receive random unknown passwords and cannot be used as shared credentials.
 insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_user_meta_data, created_at, updated_at) values
-('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000001','authenticated','authenticated','wine-lover@example.test',crypt(encode(gen_random_bytes(32), 'hex'), gen_salt('bf')),now(),'{"nickname":"와인러버"}',now(),now()),
-('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000002','authenticated','authenticated','weekend-wine@example.test',crypt(encode(gen_random_bytes(32), 'hex'), gen_salt('bf')),now(),'{"nickname":"주말에와인"}',now(),now())
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000001','authenticated','authenticated','wine-lover@example.test',extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf')),now(),'{"nickname":"와인러버"}',now(),now()),
+('00000000-0000-0000-0000-000000000000','00000000-0000-0000-0000-000000000002','authenticated','authenticated','weekend-wine@example.test',extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf')),now(),'{"nickname":"주말에와인"}',now(),now())
 on conflict (id) do nothing;
 
 insert into public.profiles (id, nickname) values
