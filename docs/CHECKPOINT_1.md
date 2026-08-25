@@ -3,6 +3,8 @@
 작성일: 2026-08-25  
 기준 자료: `React 프로젝트.zip` 내 PNG 91개 전체
 
+GitHub 저장소: https://github.com/DrowsyzzZ/WHYNE (Public)
+
 ## 1. 페이지 대응표
 
 | 페이지 | 관련 설명 이미지 | 데스크톱 | 태블릿 | 모바일 | 주요 기능 | 라우트 |
@@ -124,6 +126,5 @@
 - [x] 기능/데이터 흐름
 - [x] DB 구조와 RLS/Storage 설계
 - [x] 이슈 15개 범위와 의존 관계 초안
-- [ ] GitHub 저장소 생성(공개 여부 결정 및 gh 재인증 필요)
-- [ ] Labels/Milestones/Issues 원격 생성(동일 사유)
-
+- [x] GitHub 공개 저장소 생성 및 `main` 연결
+- [x] Labels 13개, Milestones 4개, 상세 Issues 15개 원격 생성
