@@ -2,6 +2,10 @@
 @import 'tailwindcss';
 
 @theme {
+  /* Mobile-first: mobile 320-767px, tablet 768-1199px, desktop 1200px+ */
+  --breakpoint-tablet: 48rem;
+  --breakpoint-desktop: 75rem;
+
   --color-black: #1a1918;
   --color-white: #ffffff;
   --color-gray-100: #fafafa;
@@ -71,11 +75,15 @@ select {
 }
 
 @utility container-whyne {
-  width: min(100% - 40px, 1200px);
+  width: min(100% - 32px, 1200px);
   margin-inline: auto;
 
-  @media (max-width: 767px) {
-    width: min(100% - 32px, 1200px);
+  @media (min-width: 48rem) {
+    width: min(100% - 48px, 1200px);
+  }
+
+  @media (min-width: 75rem) {
+    width: min(100% - 80px, 1200px);
   }
 }
 
