@@ -1,7 +1,15 @@
-import wine1 from '../assets/wines/wine-1.png';
-import wine2 from '../assets/wines/wine-2.png';
-import wine3 from '../assets/wines/wine-3.png';
-import wine4 from '../assets/wines/wine-4.png';
+import crimesCabernet from '../assets/wines/seed-12/19-crimes-cabernet-sauvignon.webp';
+import diabloPinot from '../assets/wines/seed-12/diablo-pinot-noir.webp';
+import essayCabernet from '../assets/wines/seed-12/essay-cabernet-sauvignon.webp';
+import g7Chardonnay from '../assets/wines/seed-12/g7-chardonnay.webp';
+import greenBaySauvignon from '../assets/wines/seed-12/green-bay-sauvignon-blanc.webp';
+import iterChardonnay from '../assets/wines/seed-12/iter-chardonnay.webp';
+import losMonterosCava from '../assets/wines/seed-12/los-monteros-cava-brut.webp';
+import mvsaCava from '../assets/wines/seed-12/mvsa-cava-brut.webp';
+import orchardLaneSauvignon from '../assets/wines/seed-12/orchard-lane-sauvignon-blanc.webp';
+import puritaMoscato from '../assets/wines/seed-12/purita-moscato-dasti.webp';
+import submissionCabernet from '../assets/wines/seed-12/submission-cabernet-sauvignon.webp';
+import valhondoCava from '../assets/wines/seed-12/valhondo-cava-brut.webp';
 import { requireSupabase } from '../lib/supabase';
 import type { WineType } from '../types/database';
 
@@ -78,56 +86,61 @@ export interface MyReview extends WineReview {
   wineName: string;
 }
 
-const seedImages = [wine1, wine2, wine3, wine4];
-const USE_MOCK_CATALOG = true;
+const seedImagesByPath: Record<string, string> = {
+  'seed/submission-cabernet-sauvignon.webp': submissionCabernet,
+  'seed/diablo-pinot-noir.webp': diabloPinot,
+  'seed/19-crimes-cabernet-sauvignon.webp': crimesCabernet,
+  'seed/essay-cabernet-sauvignon.webp': essayCabernet,
+  'seed/g7-chardonnay.webp': g7Chardonnay,
+  'seed/iter-chardonnay.webp': iterChardonnay,
+  'seed/green-bay-sauvignon-blanc.webp': greenBaySauvignon,
+  'seed/orchard-lane-sauvignon-blanc.webp': orchardLaneSauvignon,
+  'seed/mvsa-cava-brut.webp': mvsaCava,
+  'seed/valhondo-cava-brut.webp': valhondoCava,
+  'seed/los-monteros-cava-brut.webp': losMonterosCava,
+  'seed/purita-moscato-dasti.webp': puritaMoscato,
+};
+const USE_MOCK_CATALOG = import.meta.env.VITE_USE_MOCK_CATALOG !== 'false';
 const mockLikesByUser = new Map<string, Set<string>>();
 const mockReviewLikesByUser = new Map<string, Set<string>>();
 const mockReviewsByWine = new Map<string, WineReview[]>();
 
-const mockTemplates: Array<Pick<WineListItem, 'name' | 'region' | 'price' | 'type'>> = [
-  {
-    name: 'Sentinel Cabernet Sauvignon',
-    region: 'Western Cape, South Africa',
-    price: 74000,
-    type: 'red',
-  },
-  {
-    name: 'Coastal Sparkling Brut',
-    region: 'Coastal Region, South Africa',
-    price: 52000,
-    type: 'sparkling',
-  },
-  { name: 'Cape Blanc', region: 'Western Cape, South Africa', price: 43000, type: 'white' },
-  { name: 'Reserve Merlot', region: 'Bordeaux, France', price: 68000, type: 'red' },
-  { name: 'Estate Chardonnay', region: 'Napa Valley, United States', price: 89000, type: 'white' },
-  { name: 'Rosé Sparkling Cuvée', region: 'Champagne, France', price: 126000, type: 'sparkling' },
-  { name: 'Old Vine Shiraz', region: 'Barossa Valley, Australia', price: 61000, type: 'red' },
-  {
-    name: 'Sauvignon Blanc Reserve',
-    region: 'Marlborough, New Zealand',
-    price: 39000,
-    type: 'white',
-  },
-];
-
-const mockWines: WineListItem[] = Array.from({ length: 32 }, (_, index) => {
-  const template = mockTemplates[index % mockTemplates.length] ?? mockTemplates[0]!;
-  const vintage = 1992 + index;
-  const rating = [4.8, 4.6, 4.3, 4.1, 3.8, 3.6, 3.3, 0][index % 8] ?? 0;
-  return {
-    id: `mock-wine-${index + 1}`,
-    name: `${template.name} ${vintage}`,
-    region: template.region,
-    price: template.price + Math.floor(index / 8) * 5000,
-    type: template.type,
-    imageUrl: seedImages[index % seedImages.length] ?? wine1,
-    averageRating: rating,
-    reviewCount: rating ? 6 + index * 3 : 0,
-    latestReview: rating
-      ? '균형 잡힌 향과 풍미가 인상적이고 음식과 함께 즐기기 좋은 와인이에요.'
-      : null,
-  };
-});
+const mockWines: WineListItem[] = [
+  ['Submission Cabernet Sauvignon', 'Napa Valley, United States', 21000, 'red', submissionCabernet],
+  ['Diablo Pinot Noir', 'Rapel Valley, Chile', 13000, 'red', diabloPinot],
+  [
+    '19 Crimes Cabernet Sauvignon',
+    'South Eastern Australia, Australia',
+    26000,
+    'red',
+    crimesCabernet,
+  ],
+  ['ESSAY Cabernet Sauvignon', 'Western Cape, South Africa', 14900, 'red', essayCabernet],
+  ['G7 Chardonnay', 'Maule Valley, Chile', 9700, 'white', g7Chardonnay],
+  ['Iter Chardonnay', 'California, United States', 18000, 'white', iterChardonnay],
+  ['Green Bay Sauvignon Blanc', 'Marlborough, New Zealand', 21000, 'white', greenBaySauvignon],
+  [
+    'Orchard Lane Sauvignon Blanc',
+    'Marlborough, New Zealand',
+    19900,
+    'white',
+    orchardLaneSauvignon,
+  ],
+  ['Mvsa Cava Brut', 'Cava, Spain', 25000, 'sparkling', mvsaCava],
+  ['Valhondo Cava Brut', 'Spain', 10900, 'sparkling', valhondoCava],
+  ['Los Monteros Cava Brut', 'Cava, Spain', 19900, 'sparkling', losMonterosCava],
+  ["Purita Moscato D'Asti", 'Piedmont, Italy', 19900, 'sparkling', puritaMoscato],
+].map(([name, region, price, type, imageUrl], index) => ({
+  id: `mock-wine-${index + 1}`,
+  name: name as string,
+  region: region as string,
+  price: price as number,
+  type: type as WineType,
+  imageUrl: imageUrl as string,
+  averageRating: [4.8, 4.6, 4.5, 4.3, 4.2, 4.1, 3.9, 3.8, 4.7, 4.4, 4.0, 4.6][index] ?? 0,
+  reviewCount: 3,
+  latestReview: '기능 검증을 위해 작성된 임시 후기입니다.',
+}));
 
 const mockReviewContents = [
   '첫 모금부터 느껴지는 진한 과실 향과 균형 잡힌 바디감이 인상적이었어요. 식사와 함께 즐기기 좋았습니다.',
@@ -700,7 +713,11 @@ export async function unlikeWine(userId: string, wineId: string) {
 }
 
 function resolveWineImage(path: string, index: number) {
-  if (path.startsWith('seed/')) return seedImages[index % seedImages.length] ?? wine1;
+  if (path.startsWith('seed/')) {
+    return (
+      seedImagesByPath[path] ?? Object.values(seedImagesByPath)[index % 12] ?? submissionCabernet
+    );
+  }
   if (/^https?:\/\//.test(path)) return path;
   return requireSupabase().storage.from('wine-images').getPublicUrl(path).data.publicUrl;
 }

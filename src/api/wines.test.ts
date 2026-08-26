@@ -5,11 +5,36 @@ import {
   getLikedWineIds,
   getRecommendedWines,
   getWineDetail,
+  getWines,
   likeWine,
   toggleReviewLike,
   unlikeWine,
   updateReview,
 } from './wines';
+
+describe('initial wine catalog', () => {
+  it('검증용 와인 12종을 타입별 4개씩 반환한다', async () => {
+    const wines = await getWines({
+      search: '',
+      types: [],
+      minPrice: 0,
+      maxPrice: 500000,
+      ratingMin: null,
+      ratingMax: null,
+      likedOnly: false,
+    });
+
+    expect(wines).toHaveLength(12);
+    expect(wines.filter(({ type }) => type === 'red')).toHaveLength(4);
+    expect(wines.filter(({ type }) => type === 'white')).toHaveLength(4);
+    expect(wines.filter(({ type }) => type === 'sparkling')).toHaveLength(4);
+    expect(wines[0]).toMatchObject({
+      name: 'Submission Cabernet Sauvignon',
+      price: 21000,
+      region: 'Napa Valley, United States',
+    });
+  });
+});
 
 describe('getRecommendedWines', () => {
   it('평점과 리뷰 수 순서로 최대 요청 개수만 반환한다', async () => {
