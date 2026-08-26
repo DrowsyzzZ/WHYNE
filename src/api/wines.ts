@@ -29,6 +29,7 @@ export interface WineListItem {
 
 export interface WineReview {
   id: string;
+  authorId: string;
   authorNickname: string;
   authorAvatarUrl?: string;
   rating: number;
@@ -37,6 +38,18 @@ export interface WineReview {
   likeCount: number;
   createdAt: string;
   taste: { lightBold: number; smoothTannic: number; drySweet: number; softAcidic: number };
+  isLiked?: boolean;
+  isOwner?: boolean;
+}
+
+export interface ReviewInput {
+  rating: number;
+  content: string;
+  lightBold: number;
+  smoothTannic: number;
+  drySweet: number;
+  softAcidic: number;
+  aromas: string[];
 }
 
 export interface WineDetail extends WineListItem {
@@ -54,6 +67,8 @@ export interface WineDetail extends WineListItem {
 const seedImages = [wine1, wine2, wine3, wine4];
 const USE_MOCK_CATALOG = true;
 const mockLikesByUser = new Map<string, Set<string>>();
+const mockReviewLikesByUser = new Map<string, Set<string>>();
+const mockReviewsByWine = new Map<string, WineReview[]>();
 
 const mockTemplates: Array<Pick<WineListItem, 'name' | 'region' | 'price' | 'type'>> = [
   {
@@ -110,6 +125,7 @@ function createMockReviews(wine: WineListItem): WineReview[] {
   if (!wine.reviewCount) return [];
   return mockReviewContents.map((content, index) => ({
     id: `${wine.id}-review-${index + 1}`,
+    authorId: `mock-author-${index + 1}`,
     authorNickname: ['와인러버', '포도알', '오늘의한잔'][index] ?? '와인러버',
     rating: Math.max(1, Math.round(wine.averageRating) - (index === 2 ? 1 : 0)),
     content,
@@ -123,6 +139,26 @@ function createMockReviews(wine: WineListItem): WineReview[] {
     createdAt: `2026-08-${String(20 - index).padStart(2, '0')}T09:00:00.000Z`,
     taste: { lightBold: 4 - index, smoothTannic: 3, drySweet: 2 + index, softAcidic: 4 },
   }));
+}
+
+function getMockReviews(wine: WineListItem) {
+  const existing = mockReviewsByWine.get(wine.id);
+  if (existing) return existing;
+  const reviews = createMockReviews(wine);
+  mockReviewsByWine.set(wine.id, reviews);
+  return reviews;
+}
+
+function averageTaste(reviews: WineReview[]) {
+  if (!reviews.length) return { lightBold: 0, smoothTannic: 0, drySweet: 0, softAcidic: 0 };
+  const average = (key: keyof WineReview['taste']) =>
+    reviews.reduce((sum, review) => sum + review.taste[key], 0) / reviews.length;
+  return {
+    lightBold: average('lightBold'),
+    smoothTannic: average('smoothTannic'),
+    drySweet: average('drySweet'),
+    softAcidic: average('softAcidic'),
+  };
 }
 
 function filterMockWines(filters: WineFilters) {
@@ -196,19 +232,31 @@ export async function getRecommendedWines(resultLimit = 10): Promise<WineListIte
   });
 }
 
-export async function getWineDetail(wineId: string): Promise<WineDetail | null> {
+export async function getWineDetail(wineId: string, userId?: string): Promise<WineDetail | null> {
   if (USE_MOCK_CATALOG) {
     const wine = mockWines.find((item) => item.id === wineId);
     if (!wine) return null;
-    const reviews = createMockReviews(wine);
+    const reviews = getMockReviews(wine).map((review) => ({
+      ...review,
+      isOwner: review.authorId === userId,
+      isLiked: userId ? mockReviewLikesByUser.get(userId)?.has(review.id) : false,
+    }));
     const aromaCounts = new Map<string, number>();
     for (const review of reviews)
       for (const aroma of review.aromas) aromaCounts.set(aroma, (aromaCounts.get(aroma) ?? 0) + 1);
     return {
       ...wine,
-      taste: { lightBold: 4, smoothTannic: 3, drySweet: 2, softAcidic: 4 },
-      aromas: [...aromaCounts].map(([name, count]) => ({ name, count })),
-      ratingDistribution: [0, 0, 1, 2, Math.max(0, wine.reviewCount - 3)],
+      averageRating: reviews.length
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        : 0,
+      reviewCount: reviews.length,
+      taste: averageTaste(reviews),
+      aromas: [...aromaCounts]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
+      ratingDistribution: [1, 2, 3, 4, 5].map(
+        (rating) => reviews.filter((review) => review.rating === rating).length,
+      ),
       reviews,
     };
   }
@@ -239,16 +287,26 @@ export async function getWineDetail(wineId: string): Promise<WineDetail | null> 
   if (profilesError) throw profilesError;
   const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
 
+  const reviewIds = (reviews ?? []).map((review) => review.id);
+  const { data: reviewLikes, error: reviewLikesError } = reviewIds.length
+    ? await client.from('review_likes').select('review_id,user_id').in('review_id', reviewIds)
+    : { data: [], error: null };
+  if (reviewLikesError) throw reviewLikesError;
+  const reviewLikeCounts = new Map<string, number>();
+  for (const like of reviewLikes ?? [])
+    reviewLikeCounts.set(like.review_id, (reviewLikeCounts.get(like.review_id) ?? 0) + 1);
+
   const reviewItems: WineReview[] = (reviews ?? []).map((review) => {
     const profile = profileById.get(review.author_id);
     return {
       id: review.id,
+      authorId: review.author_id,
       authorNickname: profile?.nickname ?? '와인러버',
       authorAvatarUrl: profile?.avatar_path ? resolveWineImage(profile.avatar_path, 0) : undefined,
       rating: review.rating,
       content: review.content,
       aromas: review.aromas ?? [],
-      likeCount: 0,
+      likeCount: reviewLikeCounts.get(review.id) ?? 0,
       createdAt: review.created_at,
       taste: {
         lightBold: review.light_bold,
@@ -256,6 +314,11 @@ export async function getWineDetail(wineId: string): Promise<WineDetail | null> 
         drySweet: review.dry_sweet,
         softAcidic: review.soft_acidic,
       },
+      isOwner: review.author_id === userId,
+      isLiked: Boolean(
+        userId &&
+        reviewLikes?.some((like) => like.review_id === review.id && like.user_id === userId),
+      ),
     };
   });
   const aromaCounts = new Map<string, number>();
@@ -284,6 +347,128 @@ export async function getWineDetail(wineId: string): Promise<WineDetail | null> 
     ratingDistribution: distribution,
     reviews: reviewItems,
   };
+}
+
+export async function createReview(
+  wineId: string,
+  authorId: string,
+  nickname: string,
+  input: ReviewInput,
+) {
+  if (USE_MOCK_CATALOG) {
+    const wine = mockWines.find((item) => item.id === wineId);
+    if (!wine) throw new Error('와인을 찾을 수 없습니다.');
+    const review: WineReview = {
+      id: `mock-review-${crypto.randomUUID()}`,
+      authorId,
+      authorNickname: nickname,
+      rating: input.rating,
+      content: input.content,
+      aromas: input.aromas,
+      likeCount: 0,
+      createdAt: new Date().toISOString(),
+      taste: {
+        lightBold: input.lightBold,
+        smoothTannic: input.smoothTannic,
+        drySweet: input.drySweet,
+        softAcidic: input.softAcidic,
+      },
+    };
+    getMockReviews(wine).unshift(review);
+    return review;
+  }
+  const { data, error } = await requireSupabase()
+    .from('reviews')
+    .insert({
+      wine_id: wineId,
+      author_id: authorId,
+      rating: input.rating,
+      content: input.content,
+      light_bold: input.lightBold,
+      smooth_tannic: input.smoothTannic,
+      dry_sweet: input.drySweet,
+      soft_acidic: input.softAcidic,
+      aromas: input.aromas,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateReview(reviewId: string, authorId: string, input: ReviewInput) {
+  if (USE_MOCK_CATALOG) {
+    for (const reviews of mockReviewsByWine.values()) {
+      const review = reviews.find((item) => item.id === reviewId && item.authorId === authorId);
+      if (review) {
+        Object.assign(review, {
+          rating: input.rating,
+          content: input.content,
+          aromas: input.aromas,
+          taste: {
+            lightBold: input.lightBold,
+            smoothTannic: input.smoothTannic,
+            drySweet: input.drySweet,
+            softAcidic: input.softAcidic,
+          },
+        });
+        return review;
+      }
+    }
+    throw new Error('수정할 리뷰를 찾을 수 없습니다.');
+  }
+  const { error } = await requireSupabase()
+    .from('reviews')
+    .update({
+      rating: input.rating,
+      content: input.content,
+      light_bold: input.lightBold,
+      smooth_tannic: input.smoothTannic,
+      dry_sweet: input.drySweet,
+      soft_acidic: input.softAcidic,
+      aromas: input.aromas,
+    })
+    .eq('id', reviewId)
+    .eq('author_id', authorId);
+  if (error) throw error;
+}
+
+export async function deleteReview(reviewId: string, authorId: string) {
+  if (USE_MOCK_CATALOG) {
+    for (const reviews of mockReviewsByWine.values()) {
+      const index = reviews.findIndex((item) => item.id === reviewId && item.authorId === authorId);
+      if (index >= 0) {
+        reviews.splice(index, 1);
+        return;
+      }
+    }
+    throw new Error('삭제할 리뷰를 찾을 수 없습니다.');
+  }
+  const { error } = await requireSupabase()
+    .from('reviews')
+    .delete()
+    .eq('id', reviewId)
+    .eq('author_id', authorId);
+  if (error) throw error;
+}
+
+export async function toggleReviewLike(reviewId: string, userId: string, isLiked: boolean) {
+  if (USE_MOCK_CATALOG) {
+    const likes = mockReviewLikesByUser.get(userId) ?? new Set<string>();
+    if (isLiked) likes.delete(reviewId);
+    else likes.add(reviewId);
+    mockReviewLikesByUser.set(userId, likes);
+    for (const reviews of mockReviewsByWine.values()) {
+      const review = reviews.find((item) => item.id === reviewId);
+      if (review) review.likeCount = Math.max(0, review.likeCount + (isLiked ? -1 : 1));
+    }
+    return;
+  }
+  const client = requireSupabase();
+  const { error } = isLiked
+    ? await client.from('review_likes').delete().eq('review_id', reviewId).eq('user_id', userId)
+    : await client.from('review_likes').insert({ review_id: reviewId, user_id: userId });
+  if (error && error.code !== '23505') throw error;
 }
 
 export async function getLikedWineIds(userId: string): Promise<string[]> {
