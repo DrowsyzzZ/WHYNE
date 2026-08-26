@@ -17,6 +17,7 @@ export interface WineFilters {
 
 export interface WineListItem {
   id: string;
+  ownerId?: string;
   name: string;
   region: string;
   price: number;
@@ -25,6 +26,14 @@ export interface WineListItem {
   averageRating: number;
   reviewCount: number;
   latestReview: string | null;
+}
+
+export interface WineInput {
+  name: string;
+  price: number;
+  type: WineType;
+  region: string;
+  image?: File;
 }
 
 export interface WineReview {
@@ -469,6 +478,116 @@ export async function toggleReviewLike(reviewId: string, userId: string, isLiked
     ? await client.from('review_likes').delete().eq('review_id', reviewId).eq('user_id', userId)
     : await client.from('review_likes').insert({ review_id: reviewId, user_id: userId });
   if (error && error.code !== '23505') throw error;
+}
+
+export async function createWine(ownerId: string, input: WineInput) {
+  if (!input.image) throw new Error('와인 이미지를 선택해주세요.');
+  if (USE_MOCK_CATALOG) {
+    const wine: WineListItem = {
+      id: `mock-wine-${crypto.randomUUID()}`,
+      ownerId,
+      name: input.name,
+      price: input.price,
+      type: input.type,
+      region: input.region,
+      imageUrl: URL.createObjectURL(input.image),
+      averageRating: 0,
+      reviewCount: 0,
+      latestReview: null,
+    };
+    mockWines.unshift(wine);
+    return wine;
+  }
+  const client = requireSupabase();
+  const imagePath = `${ownerId}/${crypto.randomUUID()}-${input.image.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+  const { error: uploadError } = await client.storage
+    .from('wine-images')
+    .upload(imagePath, input.image, { contentType: input.image.type, upsert: false });
+  if (uploadError) throw uploadError;
+  const { data, error } = await client
+    .from('wines')
+    .insert({
+      owner_id: ownerId,
+      name: input.name,
+      price: input.price,
+      type: input.type,
+      region: input.region,
+      image_path: imagePath,
+    })
+    .select()
+    .single();
+  if (error) {
+    await client.storage.from('wine-images').remove([imagePath]);
+    throw error;
+  }
+  return data;
+}
+
+export async function updateWine(wineId: string, ownerId: string, input: WineInput) {
+  if (USE_MOCK_CATALOG) {
+    const wine = mockWines.find((item) => item.id === wineId && item.ownerId === ownerId);
+    if (!wine) throw new Error('수정할 와인을 찾을 수 없습니다.');
+    Object.assign(wine, {
+      name: input.name,
+      price: input.price,
+      type: input.type,
+      region: input.region,
+      ...(input.image ? { imageUrl: URL.createObjectURL(input.image) } : {}),
+    });
+    return wine;
+  }
+  const client = requireSupabase();
+  const { data: current, error: currentError } = await client
+    .from('wines')
+    .select('image_path')
+    .eq('id', wineId)
+    .eq('owner_id', ownerId)
+    .single();
+  if (currentError) throw currentError;
+  let imagePath = current.image_path;
+  if (input.image) {
+    const nextPath = `${ownerId}/${crypto.randomUUID()}-${input.image.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const { error: uploadError } = await client.storage
+      .from('wine-images')
+      .upload(nextPath, input.image, { contentType: input.image.type });
+    if (uploadError) throw uploadError;
+    imagePath = nextPath;
+  }
+  const { error } = await client
+    .from('wines')
+    .update({
+      name: input.name,
+      price: input.price,
+      type: input.type,
+      region: input.region,
+      image_path: imagePath,
+    })
+    .eq('id', wineId)
+    .eq('owner_id', ownerId);
+  if (error) throw error;
+  if (input.image && current.image_path)
+    await client.storage.from('wine-images').remove([current.image_path]);
+}
+
+export async function deleteWine(wineId: string, ownerId: string) {
+  if (USE_MOCK_CATALOG) {
+    const index = mockWines.findIndex((item) => item.id === wineId && item.ownerId === ownerId);
+    if (index < 0) throw new Error('삭제할 와인을 찾을 수 없습니다.');
+    mockWines.splice(index, 1);
+    mockReviewsByWine.delete(wineId);
+    return;
+  }
+  const client = requireSupabase();
+  const { data: wine, error: selectError } = await client
+    .from('wines')
+    .select('image_path')
+    .eq('id', wineId)
+    .eq('owner_id', ownerId)
+    .single();
+  if (selectError) throw selectError;
+  const { error } = await client.from('wines').delete().eq('id', wineId).eq('owner_id', ownerId);
+  if (error) throw error;
+  if (wine.image_path) await client.storage.from('wine-images').remove([wine.image_path]);
 }
 
 export async function getLikedWineIds(userId: string): Promise<string[]> {
