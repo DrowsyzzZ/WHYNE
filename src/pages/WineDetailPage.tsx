@@ -163,8 +163,8 @@ export function WineDetailPage() {
             )}
           </div>
           <aside className="sticky top-16 z-20 order-first self-start bg-white py-3 tablet:top-20 desktop:top-28 desktop:order-none desktop:bg-transparent desktop:py-0">
-            <div className="rounded-lg bg-gray-100 p-5">
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(132px,1.1fr)] gap-x-5 rounded-lg border-y border-gray-300 bg-white py-5 desktop:block desktop:border-0 desktop:bg-gray-100 desktop:p-5">
+              <div className="flex flex-col items-start gap-1 self-start desktop:flex-row desktop:items-center desktop:gap-2">
                 <Rating size="sm" value={wine.averageRating} />
                 <b>
                   {wine.averageRating.toFixed(1)}{' '}
@@ -182,7 +182,7 @@ export function WineDetailPage() {
                 ))}
               </div>
               <button
-                className="mt-6 w-full rounded-sm bg-primary px-5 py-3 text-sm font-semibold text-gray-100"
+                className="col-span-2 mt-5 w-full self-end rounded-sm bg-primary px-3 py-3 text-sm font-semibold text-gray-100 tablet:col-span-1 desktop:mt-6 desktop:px-5"
                 type="button"
               >
                 리뷰 남기기
