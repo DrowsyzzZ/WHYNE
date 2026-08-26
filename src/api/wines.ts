@@ -36,6 +36,7 @@ export interface WineReview {
   aromas: string[];
   likeCount: number;
   createdAt: string;
+  taste: { lightBold: number; smoothTannic: number; drySweet: number; softAcidic: number };
 }
 
 export interface WineDetail extends WineListItem {
@@ -120,6 +121,7 @@ function createMockReviews(wine: WineListItem): WineReview[] {
           : ['시트러스', '토스트'],
     likeCount: 8 - index * 2,
     createdAt: `2026-08-${String(20 - index).padStart(2, '0')}T09:00:00.000Z`,
+    taste: { lightBold: 4 - index, smoothTannic: 3, drySweet: 2 + index, softAcidic: 4 },
   }));
 }
 
@@ -248,6 +250,12 @@ export async function getWineDetail(wineId: string): Promise<WineDetail | null> 
       aromas: review.aromas ?? [],
       likeCount: 0,
       createdAt: review.created_at,
+      taste: {
+        lightBold: review.light_bold,
+        smoothTannic: review.smooth_tannic,
+        drySweet: review.dry_sweet,
+        softAcidic: review.soft_acidic,
+      },
     };
   });
   const aromaCounts = new Map<string, number>();
