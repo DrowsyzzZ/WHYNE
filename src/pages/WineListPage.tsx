@@ -5,6 +5,7 @@ import { Button, EmptyState, ErrorState, Loading, Modal, WineCard } from '../com
 import { WineFilters } from '../features/wines/WineFilters';
 import { RecommendedWineCarousel } from '../features/wines/RecommendedWineCarousel';
 import { useWines } from '../hooks/useWines';
+import { useRecommendedWines } from '../hooks/useRecommendedWines';
 
 const initialFilters: WineFilterValues = { search: '', types: [], minPrice: 0, maxPrice: 500000, ratingMin: null, ratingMax: null };
 const PAGE_SIZE = 8;
@@ -19,7 +20,7 @@ export function WineListPage() {
   const deferredSearch = useDeferredValue(filters.search);
   const queryFilters = { ...filters, search: deferredSearch };
   const { data = [], error, isFetching, isLoading, refetch } = useWines(queryFilters);
-  const { data: recommendedWines = [] } = useWines(initialFilters);
+  const { data: recommendedWines = [] } = useRecommendedWines(10);
   const visibleWines = data.slice(0, visibleCount);
   const hasMore = visibleCount < data.length;
   const updateFilters = (next: WineFilterValues) => { setFilters(next); setVisibleCount(PAGE_SIZE); };
@@ -44,7 +45,7 @@ export function WineListPage() {
   return (
     <main className="bg-white pb-24">
       <section className="bg-gray-100 py-10 tablet:py-14">
-        <div className="container-whyne"><h1 className="text-xl font-bold tablet:text-2xl">이번 달 추천 와인</h1><RecommendedWineCarousel onOpen={(id) => void navigate(`/wines/${id}`)} wines={recommendedWines.slice(0, 8)} /></div>
+        <div className="container-whyne"><h1 className="text-xl font-bold tablet:text-2xl">이번 달 추천 와인</h1><RecommendedWineCarousel onOpen={(id) => void navigate(`/wines/${id}`)} wines={recommendedWines} /></div>
       </section>
       <section className="container-whyne pt-10 tablet:pt-14"><div className="sticky top-16 z-30 -mx-4 bg-white px-4 py-3 tablet:-mx-6 tablet:px-6 desktop:static desktop:mx-0 desktop:p-0"><label className="relative block desktop:ml-auto desktop:w-[calc(100%-310px)]"><span className="sr-only">와인 검색</span><input className="min-h-14 w-full rounded-sm border border-gray-300 bg-white px-14 text-base placeholder:text-gray-600 focus:border-primary" onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="와인을 검색해 보세요" type="search" value={filters.search} /><span aria-hidden="true" className="absolute left-5 top-1/2 -translate-y-1/2 text-xl">⌕</span></label>
       <div className="mt-3 flex items-center justify-between desktop:hidden"><Button onClick={() => setIsFilterOpen(true)} size="icon" variant="secondary"><span aria-hidden="true">☷</span><span className="sr-only">필터</span></Button><Button onClick={() => void navigate('/login')}>와인 등록하기</Button></div></div>
