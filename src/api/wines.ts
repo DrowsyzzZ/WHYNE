@@ -22,6 +22,7 @@ export interface WineListItem {
   imageUrl: string;
   averageRating: number;
   reviewCount: number;
+  latestReview: string | null;
 }
 
 const seedImages = [wine1, wine2, wine3, wine4];
@@ -38,14 +39,18 @@ export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
   if (filters.search.trim()) query = query.ilike('name', `%${filters.search.trim()}%`);
   if (filters.types.length) query = query.in('type', filters.types);
 
-  const [{ data: wines, error }, { data: stats, error: statsError }] = await Promise.all([
+  const [{ data: wines, error }, { data: stats, error: statsError }, { data: reviews, error: reviewsError }] = await Promise.all([
     query,
     client.from('wine_stats').select('wine_id,average_rating,review_count'),
+    client.from('reviews').select('wine_id,content,created_at').order('created_at', { ascending: false }),
   ]);
   if (error) throw error;
   if (statsError) throw statsError;
+  if (reviewsError) throw reviewsError;
 
   const statsById = new Map((stats ?? []).map((stat) => [stat.wine_id, stat]));
+  const latestReviewByWine = new Map<string, string>();
+  for (const review of reviews ?? []) if (!latestReviewByWine.has(review.wine_id)) latestReviewByWine.set(review.wine_id, review.content);
   return (wines ?? []).map((wine, index) => {
     const stat = statsById.get(wine.id);
     return {
@@ -57,6 +62,7 @@ export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
       imageUrl: resolveWineImage(wine.image_path, index),
       averageRating: Number(stat?.average_rating ?? 0),
       reviewCount: Number(stat?.review_count ?? 0),
+      latestReview: latestReviewByWine.get(wine.id) ?? null,
     };
   }).filter((wine) => wine.averageRating >= filters.minRating);
 }

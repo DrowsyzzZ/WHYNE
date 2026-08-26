@@ -9,6 +9,7 @@ export interface WineCardData {
   imageUrl: string;
   averageRating: number;
   reviewCount: number;
+  latestReview?: string | null;
   isLiked?: boolean;
 }
 
@@ -21,7 +22,7 @@ interface WineCardProps {
 export function WineCard({ onOpen, onToggleLike, wine }: WineCardProps) {
   return (
     <article
-      className="group relative cursor-pointer rounded-lg bg-white p-4 shadow-card transition-transform hover:-translate-y-1"
+      className="group relative cursor-pointer bg-white transition-transform hover:-translate-y-1"
       onClick={() => onOpen(wine.id)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') onOpen(wine.id);
@@ -47,19 +48,18 @@ export function WineCard({ onOpen, onToggleLike, wine }: WineCardProps) {
           </span>
         </Button>
       )}
-      <div className="grid aspect-square place-items-center overflow-hidden rounded-md bg-gray-100 p-6">
+      <div className="grid aspect-square place-items-center overflow-hidden bg-[#f3f3f3] p-6">
         <img
           alt={`${wine.name} 와인 병`}
           className="h-full w-full object-contain transition-transform group-hover:scale-105"
           src={wine.imageUrl}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-5">
         <Rating size="sm" value={wine.averageRating} />
         <span className="ml-2 text-xs text-gray-600">리뷰 {wine.reviewCount}개</span>
-        <h3 className="mt-2 line-clamp-2 min-h-12 text-base font-semibold leading-6">{wine.name}</h3>
-        <p className="mt-1 text-sm text-gray-600">{wine.region}</p>
-        <p className="mt-3 font-bold">{wine.price.toLocaleString('ko-KR')}원</p>
+        <h3 className="mt-3 line-clamp-2 min-h-14 text-xl font-semibold leading-7">{wine.name}</h3>
+        <div className="mt-5 border-t border-gray-300 pt-4"><p className="text-sm font-semibold">최신 후기</p><p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-gray-600">{wine.latestReview ?? '아직 작성된 후기가 없습니다.'}</p></div>
       </div>
     </article>
   );
