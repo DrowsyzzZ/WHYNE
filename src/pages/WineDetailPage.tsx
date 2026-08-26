@@ -1,6 +1,16 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { EmptyState, ErrorState, Loading, Rating, ReviewCard } from '../components';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  createReview,
+  deleteReview,
+  toggleReviewLike,
+  updateReview,
+  type WineReview,
+} from '../api/wines';
+import { Button, EmptyState, ErrorState, Loading, Modal, Rating, ReviewCard } from '../components';
+import { useAuth } from '../features/auth/AuthContext';
+import { ReviewForm } from '../features/wines/ReviewForm';
 import { useWineDetail } from '../hooks/useWineDetail';
 
 const tasteLabels = [
@@ -21,8 +31,24 @@ const aromaVisuals: Record<string, { emoji: string; tone: string }> = {
 
 export function WineDetailPage() {
   const { wineId } = useParams();
-  const { data: wine, error, isLoading, refetch } = useWineDetail(wineId);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { data: wine, error, isLoading, refetch } = useWineDetail(wineId, user?.id);
   const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  const [reviewModal, setReviewModal] = useState<{
+    mode: 'create' | 'edit';
+    review?: WineReview;
+  } | null>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<WineReview | null>(null);
+  const refreshDetail = () => queryClient.invalidateQueries({ queryKey: ['wine', wineId] });
+  const openReviewForm = () => {
+    if (!user) {
+      void navigate('/login', { state: { from: `/wines/${wineId}` } });
+      return;
+    }
+    setReviewModal({ mode: 'create' });
+  };
   if (isLoading)
     return (
       <main className="container-whyne py-24">
@@ -149,6 +175,17 @@ export function WineDetailPage() {
                         return next;
                       })
                     }
+                    onDelete={() => setReviewToDelete(review)}
+                    onEdit={() => setReviewModal({ mode: 'edit', review })}
+                    onToggleLike={() => {
+                      if (!user) {
+                        void navigate('/login', { state: { from: `/wines/${wineId}` } });
+                        return;
+                      }
+                      void toggleReviewLike(review.id, user.id, Boolean(review.isLiked)).then(
+                        refreshDetail,
+                      );
+                    }}
                     review={review}
                   />
                 ))}
@@ -183,6 +220,7 @@ export function WineDetailPage() {
               </div>
               <button
                 className="col-span-2 mt-5 w-full self-end rounded-sm bg-primary px-3 py-3 text-sm font-semibold text-gray-100 tablet:col-span-1 desktop:mt-6 desktop:px-5"
+                onClick={openReviewForm}
                 type="button"
               >
                 리뷰 남기기
@@ -191,6 +229,60 @@ export function WineDetailPage() {
           </aside>
         </section>
       </div>
+      <Modal
+        isOpen={Boolean(reviewModal)}
+        onClose={() => setReviewModal(null)}
+        size="lg"
+        title={reviewModal?.mode === 'edit' ? '리뷰 수정하기' : '리뷰 남기기'}
+      >
+        {reviewModal && user && (
+          <ReviewForm
+            initialReview={reviewModal.review}
+            key={reviewModal.review?.id ?? 'create'}
+            onSubmit={async (input) => {
+              if (reviewModal.mode === 'edit' && reviewModal.review)
+                await updateReview(reviewModal.review.id, user.id, input);
+              else
+                await createReview(
+                  wine.id,
+                  user.id,
+                  typeof user.user_metadata.nickname === 'string'
+                    ? user.user_metadata.nickname
+                    : '와인러버',
+                  input,
+                );
+              await refreshDetail();
+              setReviewModal(null);
+            }}
+            wine={wine}
+          />
+        )}
+      </Modal>
+      <Modal
+        isOpen={Boolean(reviewToDelete)}
+        onClose={() => setReviewToDelete(null)}
+        size="sm"
+        title="리뷰를 삭제할까요?"
+      >
+        <p className="text-sm text-gray-600">삭제한 리뷰는 복구할 수 없습니다.</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button onClick={() => setReviewToDelete(null)} variant="secondary">
+            취소
+          </Button>
+          <Button
+            onClick={() => {
+              if (!reviewToDelete || !user) return;
+              void deleteReview(reviewToDelete.id, user.id).then(async () => {
+                await refreshDetail();
+                setReviewToDelete(null);
+              });
+            }}
+            variant="danger"
+          >
+            삭제하기
+          </Button>
+        </div>
+      </Modal>
     </main>
   );
 }
