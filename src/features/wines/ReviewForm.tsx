@@ -1,8 +1,20 @@
 import { useState, type FormEvent } from 'react';
-import type { ReviewInput, WineReview } from '../../api/wines';
+import type { ReviewInput, WineReview, WineDetail } from '../../api/wines';
 import { Button } from '../../components';
 
-const aromaOptions = ['체리', '블랙베리', '시트러스', '오크', '바닐라', '스파이스', '토스트'];
+const aromaOptions = [
+  '체리',
+  '베리',
+  '오크',
+  '바닐라',
+  '후추',
+  '제빵',
+  '풀',
+  '사과',
+  '복숭아',
+  '시트러스',
+  '트로피컬',
+];
 const tasteFields = [
   ['바디감', 'lightBold', '가벼워요', '진해요'],
   ['탄닌', 'smoothTannic', '부드러워요', '떫어요'],
@@ -22,12 +34,12 @@ const emptyReview: ReviewInput = {
 
 export function ReviewForm({
   initialReview,
-  onCancel,
   onSubmit,
+  wine,
 }: {
   initialReview?: WineReview;
-  onCancel: () => void;
   onSubmit: (input: ReviewInput) => Promise<void>;
+  wine: Pick<WineDetail, 'imageUrl' | 'name' | 'region'>;
 }) {
   const [values, setValues] = useState<ReviewInput>(
     initialReview
@@ -65,6 +77,19 @@ export function ReviewForm({
 
   return (
     <form className="space-y-7" onSubmit={(event) => void handleSubmit(event)}>
+      <div className="flex items-center gap-4 border-b border-gray-300 pb-5">
+        <div className="grid size-20 shrink-0 place-items-center bg-gray-100 p-2">
+          <img
+            alt={`${wine.name} 병 이미지`}
+            className="size-full object-contain"
+            src={wine.imageUrl}
+          />
+        </div>
+        <div className="min-w-0">
+          <strong className="block truncate">{wine.name}</strong>
+          <span className="mt-1 block truncate text-xs text-gray-600">{wine.region}</span>
+        </div>
+      </div>
       <fieldset>
         <legend className="font-semibold">별점</legend>
         <div className="mt-3 flex gap-1">
@@ -98,21 +123,27 @@ export function ReviewForm({
         <legend className="font-semibold">와인 맛 평가</legend>
         <div className="mt-4 space-y-4">
           {tasteFields.map(([label, key, low, high]) => (
-            <label className="grid grid-cols-[52px_1fr] gap-x-3 text-sm" key={key}>
+            <div
+              className="grid grid-cols-[52px_72px_1fr_72px] items-center gap-3 text-sm"
+              key={key}
+            >
               <span>{label}</span>
-              <input
-                max="5"
-                min="1"
-                onChange={(event) => setValues({ ...values, [key]: Number(event.target.value) })}
-                step="1"
-                type="range"
-                value={values[key]}
-              />
-              <span className="col-start-2 flex justify-between text-xs text-gray-600">
-                <span>{low}</span>
-                <span>{high}</span>
-              </span>
-            </label>
+              <span className="text-xs text-gray-600">{low}</span>
+              <div className="grid grid-cols-5 gap-1" role="radiogroup" aria-label={label}>
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <button
+                    aria-checked={values[key] === score}
+                    aria-label={`${label} ${score}점`}
+                    className={`h-3 rounded-sm ${score <= values[key] ? 'bg-primary' : 'bg-gray-200'}`}
+                    key={score}
+                    onClick={() => setValues({ ...values, [key]: score })}
+                    role="radio"
+                    type="button"
+                  />
+                ))}
+              </div>
+              <span className="text-right text-xs text-gray-600">{high}</span>
+            </div>
           ))}
         </div>
       </fieldset>
@@ -143,12 +174,9 @@ export function ReviewForm({
         </div>
       </fieldset>
       {error && <p className="text-sm text-error">{error}</p>}
-      <div className="flex justify-end gap-3">
-        <Button onClick={onCancel} variant="secondary">
-          취소
-        </Button>
-        <Button isLoading={isSubmitting} type="submit">
-          {initialReview ? '수정하기' : '등록하기'}
+      <div>
+        <Button className="w-full" isLoading={isSubmitting} type="submit">
+          {initialReview ? '수정하기' : '리뷰 남기기'}
         </Button>
       </div>
     </form>

@@ -239,7 +239,6 @@ export function WineDetailPage() {
           <ReviewForm
             initialReview={reviewModal.review}
             key={reviewModal.review?.id ?? 'create'}
-            onCancel={() => setReviewModal(null)}
             onSubmit={async (input) => {
               if (reviewModal.mode === 'edit' && reviewModal.review)
                 await updateReview(reviewModal.review.id, user.id, input);
@@ -255,6 +254,7 @@ export function WineDetailPage() {
               await refreshDetail();
               setReviewModal(null);
             }}
+            wine={wine}
           />
         )}
       </Modal>
