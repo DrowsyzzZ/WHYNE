@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { signOut } from '../../api/auth';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Logo } from '../brand/Logo';
@@ -27,7 +27,6 @@ export function Header() {
           <Logo />
         </Link>
         <nav aria-label="주요 메뉴" className="flex items-center gap-3">
-          <NavLink className="touch-target inline-flex items-center px-2 text-sm" to="/wines">와인</NavLink>
           {user ? (
             <>
               <Link className="touch-target inline-flex items-center px-2 text-sm" to="/myprofile">마이페이지</Link>

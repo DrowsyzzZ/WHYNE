@@ -56,7 +56,7 @@ export function WineListPage() {
       </div>
       </section>
       <Modal isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} title="필터"><WineFilters filters={filters} horizontalTypes onChange={updateFilters} /><Button className="mt-8 w-full" onClick={() => setIsFilterOpen(false)}>필터 적용하기</Button></Modal>
-      {showToTop && <Button aria-label="맨 위로" className="fixed bottom-6 right-6 z-30 rounded-full bg-white text-xl shadow-card" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} size="icon" variant="secondary"><span aria-hidden="true">↑</span></Button>}
+      {showToTop && <Button aria-label="맨 위로" className="fixed bottom-6 right-6 z-30 rounded-full text-xl text-gray-100 shadow-card" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} size="icon"><span aria-hidden="true">↑</span></Button>}
     </main>
   );
 }
