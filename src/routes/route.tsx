@@ -4,6 +4,7 @@ import { AppLayout, AuthLayout } from '../components/layout';
 import { LandingPage } from '../pages/LandingPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
+import { WineListPage } from '../pages/WineListPage';
 import { RequireAuth } from './RequireAuth';
 
 // Route components intentionally live here so authentication pages stay code-split.
@@ -17,7 +18,7 @@ const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 export const router = createBrowserRouter([
   { index: true, element: <LandingPage /> },
   { element: <AppLayout />, children: [
-    { path: 'wines', element: <PlaceholderPage title="와인 목록" /> },
+    { path: 'wines', element: <WineListPage /> },
     { path: 'wines/:wineId', element: <PlaceholderPage title="와인 상세" /> },
     { element: <RequireAuth />, children: [{ path: 'myprofile', element: <PlaceholderPage title="내 프로필" /> }] },
     { path: '*', element: <NotFoundPage /> },

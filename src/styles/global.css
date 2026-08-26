@@ -28,6 +28,66 @@
   --shadow-modal: 0 18px 48px rgb(26 25 24 / 18%);
 }
 
+.dual-range-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 1.5rem;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.dual-range-input::-webkit-slider-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  appearance: none;
+  border: 1px solid #cfd0d4;
+  border-radius: 9999px;
+  background: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.dual-range-input::-moz-range-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid #cfd0d4;
+  border-radius: 9999px;
+  background: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.recommendation-scroll {
+  scrollbar-color: #6a42db #e9e7ed;
+  scrollbar-width: thin;
+}
+
+.recommendation-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recommendation-scroll::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: #e9e7ed;
+}
+
+.recommendation-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: #6a42db;
+}
+
+@media (min-width: 48rem) {
+  .recommendation-scroll {
+    scrollbar-width: none;
+  }
+
+  .recommendation-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 :root {
   font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
