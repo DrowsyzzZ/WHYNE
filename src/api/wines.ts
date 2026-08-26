@@ -27,6 +27,45 @@ export interface WineListItem {
 }
 
 const seedImages = [wine1, wine2, wine3, wine4];
+const USE_MOCK_CATALOG = true;
+
+const mockTemplates: Array<Pick<WineListItem, 'name' | 'region' | 'price' | 'type'>> = [
+  { name: 'Sentinel Cabernet Sauvignon', region: 'Western Cape, South Africa', price: 74000, type: 'red' },
+  { name: 'Coastal Sparkling Brut', region: 'Coastal Region, South Africa', price: 52000, type: 'sparkling' },
+  { name: 'Cape Blanc', region: 'Western Cape, South Africa', price: 43000, type: 'white' },
+  { name: 'Reserve Merlot', region: 'Bordeaux, France', price: 68000, type: 'red' },
+  { name: 'Estate Chardonnay', region: 'Napa Valley, United States', price: 89000, type: 'white' },
+  { name: 'Rosé Sparkling Cuvée', region: 'Champagne, France', price: 126000, type: 'sparkling' },
+  { name: 'Old Vine Shiraz', region: 'Barossa Valley, Australia', price: 61000, type: 'red' },
+  { name: 'Sauvignon Blanc Reserve', region: 'Marlborough, New Zealand', price: 39000, type: 'white' },
+];
+
+const mockWines: WineListItem[] = Array.from({ length: 32 }, (_, index) => {
+  const template = mockTemplates[index % mockTemplates.length] ?? mockTemplates[0]!;
+  const vintage = 1992 + index;
+  const rating = [4.8, 4.6, 4.3, 4.1, 3.8, 3.6, 3.3, 0][index % 8] ?? 0;
+  return {
+    id: `mock-wine-${index + 1}`,
+    name: `${template.name} ${vintage}`,
+    region: template.region,
+    price: template.price + Math.floor(index / 8) * 5000,
+    type: template.type,
+    imageUrl: seedImages[index % seedImages.length] ?? wine1,
+    averageRating: rating,
+    reviewCount: rating ? 6 + index * 3 : 0,
+    latestReview: rating ? '균형 잡힌 향과 풍미가 인상적이고 음식과 함께 즐기기 좋은 와인이에요.' : null,
+  };
+});
+
+function filterMockWines(filters: WineFilters) {
+  const search = filters.search.trim().toLocaleLowerCase();
+  return mockWines.filter((wine) => (!search || wine.name.toLocaleLowerCase().includes(search))
+    && (!filters.types.length || filters.types.includes(wine.type))
+    && wine.price >= filters.minPrice
+    && wine.price <= filters.maxPrice
+    && (filters.ratingMin === null || wine.averageRating >= filters.ratingMin)
+    && (filters.ratingMax === null || wine.averageRating <= filters.ratingMax));
+}
 
 function resolveWineImage(path: string, index: number) {
   if (path.startsWith('seed/')) return seedImages[index % seedImages.length] ?? wine1;
@@ -35,6 +74,7 @@ function resolveWineImage(path: string, index: number) {
 }
 
 export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
+  if (USE_MOCK_CATALOG) return filterMockWines(filters);
   const client = requireSupabase();
   let query = client.from('wines').select('*').gte('price', filters.minPrice).lte('price', filters.maxPrice).order('created_at', { ascending: false });
   if (filters.search.trim()) query = query.ilike('name', `%${filters.search.trim()}%`);
