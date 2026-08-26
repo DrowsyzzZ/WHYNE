@@ -10,7 +10,8 @@ export interface WineFilters {
   types: WineType[];
   minPrice: number;
   maxPrice: number;
-  minRating: number;
+  ratingMin: number | null;
+  ratingMax: number | null;
 }
 
 export interface WineListItem {
@@ -64,5 +65,6 @@ export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
       reviewCount: Number(stat?.review_count ?? 0),
       latestReview: latestReviewByWine.get(wine.id) ?? null,
     };
-  }).filter((wine) => wine.averageRating >= filters.minRating);
+  }).filter((wine) => (filters.ratingMin === null || wine.averageRating >= filters.ratingMin)
+    && (filters.ratingMax === null || wine.averageRating <= filters.ratingMax));
 }
