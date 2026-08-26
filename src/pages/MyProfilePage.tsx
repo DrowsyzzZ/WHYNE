@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -19,7 +19,6 @@ export function MyProfilePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<'reviews' | 'wines'>('reviews');
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [editingWine, setEditingWine] = useState<WineListItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'wine' | 'review'; id: string } | null>(
     null,
@@ -54,6 +53,13 @@ export function MyProfilePage() {
       setDeleteTarget(null);
     },
   });
+  const profileMutation = useMutation({
+    mutationFn: ({ nickname, avatar }: { nickname: string; avatar?: File }) =>
+      updateProfile(userId, nickname, avatar),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+    },
+  });
 
   if (profileQuery.isLoading || winesQuery.isLoading || reviewsQuery.isLoading)
     return (
@@ -76,24 +82,70 @@ export function MyProfilePage() {
   const reviews = reviewsQuery.data ?? [];
 
   return (
-    <main className="bg-white pb-24">
-      <section className="bg-gray-100 py-12 tablet:py-16">
-        <div className="container-whyne flex flex-col items-center text-center">
-          <div className="grid size-24 place-items-center overflow-hidden rounded-full bg-white text-3xl font-bold text-primary shadow-card">
+    <main className="container-whyne grid gap-10 bg-white py-10 pb-24 desktop:grid-cols-[220px_minmax(0,1fr)] desktop:gap-12">
+      <aside className="self-start desktop:sticky desktop:top-28">
+        <div className="flex flex-col items-center desktop:items-start">
+          <label className="group relative block size-32 cursor-pointer overflow-hidden rounded-full bg-gray-100 text-primary shadow-card">
             {profile?.avatarUrl ? (
               <img alt="프로필" className="size-full object-cover" src={profile.avatarUrl} />
             ) : (
-              profile?.nickname.charAt(0)
+              <span className="grid size-full place-items-center text-4xl font-bold">
+                {profile?.nickname.charAt(0)}
+              </span>
             )}
-          </div>
-          <h1 className="mt-5 text-2xl font-bold">{profile?.nickname}</h1>
-          <p className="mt-1 text-sm text-gray-600">{user?.email}</p>
-          <Button className="mt-5" onClick={() => setIsProfileOpen(true)} variant="secondary">
-            프로필 수정
-          </Button>
+            <span className="absolute inset-0 grid place-items-center bg-primary/0 text-white opacity-0 transition group-focus-within:bg-primary group-focus-within:opacity-100 group-hover:bg-primary group-hover:opacity-100">
+              <svg aria-hidden="true" className="size-12" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 3 7.5 5H5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-2.5L15 3H9Zm3 4a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
+              </svg>
+            </span>
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              disabled={profileMutation.isPending}
+              onChange={(event) => {
+                const avatar = event.target.files?.[0];
+                if (avatar && profile)
+                  profileMutation.mutate({ nickname: profile.nickname, avatar });
+                event.target.value = '';
+              }}
+              type="file"
+            />
+          </label>
+          <h1 className="mt-5 text-xl font-bold">{profile?.nickname}</h1>
+          <form
+            className="mt-6 w-full"
+            key={profile?.nickname}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const nicknameValue = new FormData(event.currentTarget).get('nickname');
+              const nickname = typeof nicknameValue === 'string' ? nicknameValue.trim() : '';
+              if (nickname && nickname.length <= 20) profileMutation.mutate({ nickname });
+            }}
+          >
+            <label className="text-sm font-medium">
+              닉네임
+              <input
+                className="mt-2 min-h-10 w-full rounded-sm border border-gray-300 px-3 text-sm"
+                defaultValue={profile?.nickname}
+                maxLength={20}
+                name="nickname"
+              />
+            </label>
+            <Button
+              className="mt-3 w-full"
+              isLoading={profileMutation.isPending}
+              size="sm"
+              type="submit"
+            >
+              변경하기
+            </Button>
+          </form>
+          {profileMutation.error && (
+            <p className="mt-3 text-sm text-error">프로필 변경에 실패했습니다.</p>
+          )}
         </div>
-      </section>
-      <section className="container-whyne pt-10">
+      </aside>
+      <section className="min-w-0">
         <div className="flex border-b border-gray-300">
           <button
             aria-selected={tab === 'reviews'}
@@ -195,16 +247,6 @@ export function MyProfilePage() {
           </div>
         )}
       </section>
-      <Modal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} title="프로필 변경하기">
-        <ProfileForm
-          initialNickname={profile?.nickname ?? ''}
-          onSubmit={async (nickname, avatar) => {
-            await updateProfile(userId, nickname, avatar);
-            await queryClient.invalidateQueries({ queryKey: ['profile', userId] });
-            setIsProfileOpen(false);
-          }}
-        />
-      </Modal>
       <Modal
         isOpen={Boolean(editingWine)}
         onClose={() => setEditingWine(null)}
@@ -248,60 +290,5 @@ export function MyProfilePage() {
         </div>
       </Modal>
     </main>
-  );
-}
-
-function ProfileForm({
-  initialNickname,
-  onSubmit,
-}: {
-  initialNickname: string;
-  onSubmit: (nickname: string, avatar?: File) => Promise<void>;
-}) {
-  const [nickname, setNickname] = useState(initialNickname);
-  const [avatar, setAvatar] = useState<File>();
-  const [error, setError] = useState('');
-  const [pending, setPending] = useState(false);
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!nickname.trim() || nickname.trim().length > 20) {
-      setError('닉네임을 1~20자로 입력해주세요.');
-      return;
-    }
-    setPending(true);
-    setError('');
-    try {
-      await onSubmit(nickname.trim(), avatar);
-    } catch {
-      setError('프로필 변경에 실패했습니다.');
-    } finally {
-      setPending(false);
-    }
-  };
-  return (
-    <form className="space-y-5" onSubmit={(event) => void submit(event)}>
-      <label className="block text-sm font-medium">
-        프로필 이미지
-        <input
-          accept="image/jpeg,image/png,image/webp"
-          className="mt-2 block w-full text-sm"
-          onChange={(event) => setAvatar(event.target.files?.[0])}
-          type="file"
-        />
-      </label>
-      <label className="block text-sm font-medium">
-        닉네임
-        <input
-          className="mt-2 min-h-12 w-full rounded-sm border border-gray-300 px-4"
-          maxLength={20}
-          onChange={(event) => setNickname(event.target.value)}
-          value={nickname}
-        />
-      </label>
-      {error && <p className="text-sm text-error">{error}</p>}
-      <Button className="w-full" isLoading={pending} type="submit">
-        변경하기
-      </Button>
-    </form>
   );
 }
