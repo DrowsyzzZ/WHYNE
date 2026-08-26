@@ -162,7 +162,7 @@ export function WineDetailPage() {
               </div>
             )}
           </div>
-          <aside className="self-start desktop:sticky desktop:top-28">
+          <aside className="sticky top-16 z-20 order-first self-start bg-white py-3 tablet:top-20 desktop:top-28 desktop:order-none desktop:bg-transparent desktop:py-0">
             <div className="rounded-lg bg-gray-100 p-5">
               <div className="flex items-center gap-2">
                 <Rating size="sm" value={wine.averageRating} />
