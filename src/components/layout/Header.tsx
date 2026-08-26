@@ -21,19 +21,31 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-black text-white">
-      <div className="container-whyne flex min-h-16 items-center justify-between gap-5">
-        <Link aria-label="WHYNE 홈" className="touch-target inline-flex items-center" to="/">
+    <header className="fixed top-0 left-1/2 z-40 container-whyne -translate-x-1/2 bg-black text-white">
+      <div className="flex min-h-16 items-center justify-between gap-5 px-5 tablet:min-h-20 tablet:px-6">
+        <Link aria-label="WHYNE 홈" className="inline-flex items-center" to="/">
           <Logo />
         </Link>
         <nav aria-label="주요 메뉴" className="flex items-center gap-3">
           {user ? (
             <>
-              <Link className="touch-target inline-flex items-center px-2 text-sm" to="/myprofile">마이페이지</Link>
-              <Button className="px-2 text-white" isLoading={isSigningOut} onClick={() => void handleSignOut()} size="sm" variant="ghost">로그아웃</Button>
+              <Link className="inline-flex items-center px-2 text-sm" to="/myprofile">
+                마이페이지
+              </Link>
+              <Button
+                className="px-2 text-white"
+                isLoading={isSigningOut}
+                onClick={() => void handleSignOut()}
+                size="sm"
+                variant="ghost"
+              >
+                로그아웃
+              </Button>
             </>
           ) : (
-            <Link className="touch-target inline-flex items-center px-2 text-sm" to="/login">로그인</Link>
+            <Link className="inline-flex items-center justify-center text-sm" to="/login">
+              로그인
+            </Link>
           )}
         </nav>
       </div>

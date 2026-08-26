@@ -13,7 +13,7 @@ export async function signUpWithEmail(email: string, password: string, nickname:
     options: { data: { nickname } },
   });
   if (error) throw error;
-  if (!data.session) throw new Error('회원가입 후 세션을 생성하지 못했습니다. 이메일 확인 설정을 확인해 주세요.');
+  if (!data.user) throw new Error('회원 정보를 생성하지 못했습니다.');
   return data;
 }
 
