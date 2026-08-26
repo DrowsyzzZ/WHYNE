@@ -67,6 +67,50 @@ function filterMockWines(filters: WineFilters) {
     && (filters.ratingMax === null || wine.averageRating <= filters.ratingMax));
 }
 
+export async function getRecommendedWines(resultLimit = 10): Promise<WineListItem[]> {
+  const limit = Math.min(Math.max(resultLimit, 1), 10);
+  if (USE_MOCK_CATALOG) {
+    return [...mockWines]
+      .sort((left, right) => right.averageRating - left.averageRating
+        || right.reviewCount - left.reviewCount
+        || left.id.localeCompare(right.id))
+      .slice(0, limit);
+  }
+
+  const client = requireSupabase();
+  const { data: recommendations, error } = await client.rpc('get_recommended_wines', { result_limit: limit });
+  if (error) throw error;
+  const ids = (recommendations ?? []).map((item) => item.wine_id);
+  if (!ids.length) return [];
+
+  const [{ data: wines, error: winesError }, { data: reviews, error: reviewsError }] = await Promise.all([
+    client.from('wines').select('*').in('id', ids),
+    client.from('reviews').select('wine_id,content,created_at').in('wine_id', ids).order('created_at', { ascending: false }),
+  ]);
+  if (winesError) throw winesError;
+  if (reviewsError) throw reviewsError;
+
+  const wineById = new Map((wines ?? []).map((wine) => [wine.id, wine]));
+  const latestReviewByWine = new Map<string, string>();
+  for (const review of reviews ?? []) if (!latestReviewByWine.has(review.wine_id)) latestReviewByWine.set(review.wine_id, review.content);
+
+  return (recommendations ?? []).flatMap((recommendation, index) => {
+    const wine = wineById.get(recommendation.wine_id);
+    if (!wine) return [];
+    return [{
+      id: wine.id,
+      name: wine.name,
+      region: wine.region,
+      price: wine.price,
+      type: wine.type,
+      imageUrl: resolveWineImage(wine.image_path, index),
+      averageRating: Number(recommendation.average_rating),
+      reviewCount: Number(recommendation.review_count),
+      latestReview: latestReviewByWine.get(wine.id) ?? null,
+    }];
+  });
+}
+
 function resolveWineImage(path: string, index: number) {
   if (path.startsWith('seed/')) return seedImages[index % seedImages.length] ?? wine1;
   if (/^https?:\/\//.test(path)) return path;
