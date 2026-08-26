@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import redImage from '../../assets/wine-types/red.png';
 import sparklingImage from '../../assets/wine-types/sparkling.png';
 import whiteImage from '../../assets/wine-types/white.png';
-import type { WineInput } from '../../api/wines';
+import type { WineInput, WineListItem } from '../../api/wines';
 import { Button, Input } from '../../components';
 import type { WineType } from '../../types/database';
 
@@ -12,11 +12,17 @@ const wineTypes: Array<{ type: WineType; label: string; image: string }> = [
   { type: 'sparkling', label: 'Sparkling', image: sparklingImage },
 ];
 
-export function WineForm({ onSubmit }: { onSubmit: (input: WineInput) => Promise<void> }) {
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [region, setRegion] = useState('');
-  const [type, setType] = useState<WineType>('red');
+export function WineForm({
+  initialWine,
+  onSubmit,
+}: {
+  initialWine?: WineListItem;
+  onSubmit: (input: WineInput) => Promise<void>;
+}) {
+  const [name, setName] = useState(initialWine?.name ?? '');
+  const [price, setPrice] = useState(initialWine ? String(initialWine.price) : '');
+  const [region, setRegion] = useState(initialWine?.region ?? '');
+  const [type, setType] = useState<WineType>(initialWine?.type ?? 'red');
   const [image, setImage] = useState<File>();
   const previewUrl = useMemo(() => (image ? URL.createObjectURL(image) : ''), [image]);
   const [error, setError] = useState('');
@@ -30,7 +36,7 @@ export function WineForm({ onSubmit }: { onSubmit: (input: WineInput) => Promise
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!image) {
+    if (!image && !initialWine) {
       setError('와인 이미지를 선택해주세요.');
       return;
     }
@@ -65,11 +71,11 @@ export function WineForm({ onSubmit }: { onSubmit: (input: WineInput) => Promise
       <label className="block">
         <span className="text-sm font-medium">와인 이미지</span>
         <span className="mt-2 grid min-h-40 cursor-pointer place-items-center rounded-md border border-dashed border-gray-300 bg-gray-100 p-4">
-          {previewUrl ? (
+          {previewUrl || initialWine?.imageUrl ? (
             <img
               alt="등록할 와인 미리보기"
               className="h-36 w-full object-contain"
-              src={previewUrl}
+              src={previewUrl || initialWine?.imageUrl}
             />
           ) : (
             <span className="text-sm text-gray-600">이미지를 선택해주세요</span>
@@ -128,7 +134,7 @@ export function WineForm({ onSubmit }: { onSubmit: (input: WineInput) => Promise
         </p>
       )}
       <Button className="w-full" isLoading={isSubmitting} type="submit">
-        와인 등록하기
+        {initialWine ? '수정하기' : '와인 등록하기'}
       </Button>
     </form>
   );
