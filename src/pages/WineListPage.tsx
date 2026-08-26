@@ -1,8 +1,10 @@
 import { useDeferredValue, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { WineFilters as WineFilterValues } from '../api/wines';
+import { useQueryClient } from '@tanstack/react-query';
+import { createWine, type WineFilters as WineFilterValues } from '../api/wines';
 import { Button, EmptyState, ErrorState, Loading, Modal, WineCard } from '../components';
 import { WineFilters } from '../features/wines/WineFilters';
+import { WineForm } from '../features/wines/WineForm';
 import { RecommendedWineCarousel } from '../features/wines/RecommendedWineCarousel';
 import { useAuth } from '../features/auth/AuthContext';
 import { useWines } from '../hooks/useWines';
@@ -22,12 +24,14 @@ const PAGE_SIZE = 8;
 
 export function WineListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [filters, setFilters] = useState(initialFilters);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showToTop, setShowToTop] = useState(false);
   const [showLikeLogin, setShowLikeLogin] = useState(false);
+  const [isWineFormOpen, setIsWineFormOpen] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const deferredSearch = useDeferredValue(filters.search);
   const queryFilters = { ...filters, search: deferredSearch };
@@ -77,6 +81,13 @@ export function WineListPage() {
     }
     toggleLike({ wineId, isLiked: likedWineIdSet.has(wineId) });
   };
+  const openWineForm = () => {
+    if (!user) {
+      void navigate('/login', { state: { from: '/wines' } });
+      return;
+    }
+    setIsWineFormOpen(true);
+  };
 
   return (
     <main className="bg-white pb-24">
@@ -109,13 +120,13 @@ export function WineListPage() {
               <span aria-hidden="true">☷</span>
               <span className="sr-only">필터</span>
             </Button>
-            <Button onClick={() => void navigate('/login')}>와인 등록하기</Button>
+            <Button onClick={openWineForm}>와인 등록하기</Button>
           </div>
         </div>
         <div className="mt-8 grid gap-10 desktop:grid-cols-[260px_1fr]">
           <div className="hidden self-start desktop:sticky desktop:top-24 desktop:block">
             <WineFilters filters={filters} onChange={updateFilters} />
-            <Button className="mt-10 w-full" onClick={() => void navigate('/login')}>
+            <Button className="mt-10 w-full" onClick={openWineForm}>
               와인 등록하기
             </Button>
           </div>
@@ -174,6 +185,26 @@ export function WineListPage() {
           </Button>
           <Button onClick={() => void navigate('/login')}>로그인</Button>
         </div>
+      </Modal>
+      <Modal
+        isOpen={isWineFormOpen}
+        onClose={() => setIsWineFormOpen(false)}
+        size="lg"
+        title="와인 등록하기"
+      >
+        {user && (
+          <WineForm
+            onSubmit={async (input) => {
+              const created = await createWine(user.id, input);
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['wines'] }),
+                queryClient.invalidateQueries({ queryKey: ['recommendedWines'] }),
+              ]);
+              setIsWineFormOpen(false);
+              void navigate(`/wines/${created.id}`);
+            }}
+          />
+        )}
       </Modal>
       {showToTop && (
         <Button
