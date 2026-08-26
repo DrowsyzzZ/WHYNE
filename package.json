@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "supabase:upload-seed-images": "supabase storage cp --experimental --linked --recursive --cache-control max-age=31536000 src/assets/wines/seed-12 ss:///wine-images/seed"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

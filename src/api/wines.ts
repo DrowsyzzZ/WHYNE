@@ -86,21 +86,8 @@ export interface MyReview extends WineReview {
   wineName: string;
 }
 
-const seedImagesByPath: Record<string, string> = {
-  'seed/submission-cabernet-sauvignon.webp': submissionCabernet,
-  'seed/diablo-pinot-noir.webp': diabloPinot,
-  'seed/19-crimes-cabernet-sauvignon.webp': crimesCabernet,
-  'seed/essay-cabernet-sauvignon.webp': essayCabernet,
-  'seed/g7-chardonnay.webp': g7Chardonnay,
-  'seed/iter-chardonnay.webp': iterChardonnay,
-  'seed/green-bay-sauvignon-blanc.webp': greenBaySauvignon,
-  'seed/orchard-lane-sauvignon-blanc.webp': orchardLaneSauvignon,
-  'seed/mvsa-cava-brut.webp': mvsaCava,
-  'seed/valhondo-cava-brut.webp': valhondoCava,
-  'seed/los-monteros-cava-brut.webp': losMonterosCava,
-  'seed/purita-moscato-dasti.webp': puritaMoscato,
-};
-const USE_MOCK_CATALOG = import.meta.env.VITE_USE_MOCK_CATALOG !== 'false';
+const USE_MOCK_CATALOG =
+  import.meta.env.MODE === 'test' || import.meta.env.VITE_USE_MOCK_CATALOG === 'true';
 const mockLikesByUser = new Map<string, Set<string>>();
 const mockReviewLikesByUser = new Map<string, Set<string>>();
 const mockReviewsByWine = new Map<string, WineReview[]>();
@@ -240,7 +227,7 @@ export async function getRecommendedWines(resultLimit = 10): Promise<WineListIte
     if (!latestReviewByWine.has(review.wine_id))
       latestReviewByWine.set(review.wine_id, review.content);
 
-  return (recommendations ?? []).flatMap((recommendation, index) => {
+  return (recommendations ?? []).flatMap((recommendation) => {
     const wine = wineById.get(recommendation.wine_id);
     if (!wine) return [];
     return [
@@ -250,7 +237,7 @@ export async function getRecommendedWines(resultLimit = 10): Promise<WineListIte
         region: wine.region,
         price: wine.price,
         type: wine.type,
-        imageUrl: resolveWineImage(wine.image_path, index),
+        imageUrl: resolveWineImage(wine.image_path),
         averageRating: Number(recommendation.average_rating),
         reviewCount: Number(recommendation.review_count),
         latestReview: latestReviewByWine.get(wine.id) ?? null,
@@ -329,7 +316,9 @@ export async function getWineDetail(wineId: string, userId?: string): Promise<Wi
       id: review.id,
       authorId: review.author_id,
       authorNickname: profile?.nickname ?? '와인러버',
-      authorAvatarUrl: profile?.avatar_path ? resolveWineImage(profile.avatar_path, 0) : undefined,
+      authorAvatarUrl: profile?.avatar_path
+        ? resolveWineImage(profile.avatar_path, 'avatars')
+        : undefined,
       rating: review.rating,
       content: review.content,
       aromas: review.aromas ?? [],
@@ -360,7 +349,7 @@ export async function getWineDetail(wineId: string, userId?: string): Promise<Wi
     region: wine.region,
     price: wine.price,
     type: wine.type,
-    imageUrl: resolveWineImage(wine.image_path, 0),
+    imageUrl: resolveWineImage(wine.image_path),
     averageRating: Number(stat?.average_rating ?? 0),
     reviewCount: Number(stat?.review_count ?? 0),
     latestReview: reviewItems[0]?.content ?? null,
@@ -617,14 +606,14 @@ export async function getMyWines(ownerId: string): Promise<WineListItem[]> {
     .eq('owner_id', ownerId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((wine, index) => ({
+  return (data ?? []).map((wine) => ({
     id: wine.id,
     ownerId: wine.owner_id,
     name: wine.name,
     price: wine.price,
     type: wine.type,
     region: wine.region,
-    imageUrl: resolveWineImage(wine.image_path, index),
+    imageUrl: resolveWineImage(wine.image_path),
     averageRating: 0,
     reviewCount: 0,
     latestReview: null,
@@ -712,14 +701,9 @@ export async function unlikeWine(userId: string, wineId: string) {
   if (error) throw error;
 }
 
-function resolveWineImage(path: string, index: number) {
-  if (path.startsWith('seed/')) {
-    return (
-      seedImagesByPath[path] ?? Object.values(seedImagesByPath)[index % 12] ?? submissionCabernet
-    );
-  }
+function resolveWineImage(path: string, bucket = 'wine-images') {
   if (/^https?:\/\//.test(path)) return path;
-  return requireSupabase().storage.from('wine-images').getPublicUrl(path).data.publicUrl;
+  return requireSupabase().storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
 
 export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
@@ -756,7 +740,7 @@ export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
     if (!latestReviewByWine.has(review.wine_id))
       latestReviewByWine.set(review.wine_id, review.content);
   return (wines ?? [])
-    .map((wine, index) => {
+    .map((wine) => {
       const stat = statsById.get(wine.id);
       return {
         id: wine.id,
@@ -764,7 +748,7 @@ export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
         region: wine.region,
         price: wine.price,
         type: wine.type,
-        imageUrl: resolveWineImage(wine.image_path, index),
+        imageUrl: resolveWineImage(wine.image_path),
         averageRating: Number(stat?.average_rating ?? 0),
         reviewCount: Number(stat?.review_count ?? 0),
         latestReview: latestReviewByWine.get(wine.id) ?? null,
