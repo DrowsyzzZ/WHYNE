@@ -73,6 +73,11 @@ export interface WineDetail extends WineListItem {
   reviews: WineReview[];
 }
 
+export interface MyReview extends WineReview {
+  wineId: string;
+  wineName: string;
+}
+
 const seedImages = [wine1, wine2, wine3, wine4];
 const USE_MOCK_CATALOG = true;
 const mockLikesByUser = new Map<string, Set<string>>();
@@ -588,6 +593,74 @@ export async function deleteWine(wineId: string, ownerId: string) {
   const { error } = await client.from('wines').delete().eq('id', wineId).eq('owner_id', ownerId);
   if (error) throw error;
   if (wine.image_path) await client.storage.from('wine-images').remove([wine.image_path]);
+}
+
+export async function getMyWines(ownerId: string): Promise<WineListItem[]> {
+  if (USE_MOCK_CATALOG) return mockWines.filter((wine) => wine.ownerId === ownerId);
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from('wines')
+    .select('*')
+    .eq('owner_id', ownerId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((wine, index) => ({
+    id: wine.id,
+    ownerId: wine.owner_id,
+    name: wine.name,
+    price: wine.price,
+    type: wine.type,
+    region: wine.region,
+    imageUrl: resolveWineImage(wine.image_path, index),
+    averageRating: 0,
+    reviewCount: 0,
+    latestReview: null,
+  }));
+}
+
+export async function getMyReviews(authorId: string): Promise<MyReview[]> {
+  if (USE_MOCK_CATALOG) {
+    const result: MyReview[] = [];
+    for (const [wineId, reviews] of mockReviewsByWine) {
+      const wine = mockWines.find((item) => item.id === wineId);
+      for (const review of reviews)
+        if (review.authorId === authorId)
+          result.push({ ...review, wineId, wineName: wine?.name ?? '와인' });
+    }
+    return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from('reviews')
+    .select('*')
+    .eq('author_id', authorId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  const wineIds = [...new Set((data ?? []).map((review) => review.wine_id))];
+  const { data: wines, error: winesError } = wineIds.length
+    ? await client.from('wines').select('id,name').in('id', wineIds)
+    : { data: [], error: null };
+  if (winesError) throw winesError;
+  const names = new Map((wines ?? []).map((wine) => [wine.id, wine.name]));
+  return (data ?? []).map((review) => ({
+    id: review.id,
+    authorId: review.author_id,
+    authorNickname: '나',
+    rating: review.rating,
+    content: review.content,
+    aromas: review.aromas,
+    likeCount: 0,
+    createdAt: review.created_at,
+    taste: {
+      lightBold: review.light_bold,
+      smoothTannic: review.smooth_tannic,
+      drySweet: review.dry_sweet,
+      softAcidic: review.soft_acidic,
+    },
+    isOwner: true,
+    wineId: review.wine_id,
+    wineName: names.get(review.wine_id) ?? '와인',
+  }));
 }
 
 export async function getLikedWineIds(userId: string): Promise<string[]> {

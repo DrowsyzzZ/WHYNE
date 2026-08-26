@@ -3,9 +3,9 @@ import { createBrowserRouter } from 'react-router-dom';
 import { AppLayout, AuthLayout } from '../components/layout';
 import { LandingPage } from '../pages/LandingPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { WineListPage } from '../pages/WineListPage';
 import { WineDetailPage } from '../pages/WineDetailPage';
+import { MyProfilePage } from '../pages/MyProfilePage';
 import { RequireAuth } from './RequireAuth';
 
 // Route components intentionally live here so authentication pages stay code-split.
@@ -30,7 +30,7 @@ export const router = createBrowserRouter(
         { path: 'wines/:wineId', element: <WineDetailPage /> },
         {
           element: <RequireAuth />,
-          children: [{ path: 'myprofile', element: <PlaceholderPage title="내 프로필" /> }],
+          children: [{ path: 'myprofile', element: <MyProfilePage /> }],
         },
         { path: '*', element: <NotFoundPage /> },
       ],

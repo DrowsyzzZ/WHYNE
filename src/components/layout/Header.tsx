@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { signOut } from '../../api/auth';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Logo } from '../brand/Logo';
+import { getProfile } from '../../api/profiles';
 
 export function Header() {
   const { user } = useAuth();
@@ -12,9 +14,18 @@ export function Header() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const nickname =
     typeof user?.user_metadata.nickname === 'string' ? user.user_metadata.nickname : null;
-  const avatarUrl =
+  const profileQuery = useQuery({
+    queryKey: ['profile', user?.id, nickname],
+    queryFn: () => getProfile(user!.id, nickname ?? '와인러버'),
+    enabled: Boolean(user),
+  });
+  const metadataAvatar =
     typeof user?.user_metadata.avatar_url === 'string' ? user.user_metadata.avatar_url : null;
-  const profileInitial = (nickname || user?.email || 'U').trim().charAt(0).toUpperCase();
+  const avatarUrl = profileQuery.data?.avatarUrl ?? metadataAvatar;
+  const profileInitial = (profileQuery.data?.nickname || nickname || user?.email || 'U')
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   useEffect(() => {
     const closeOnOutsideClick = (event: MouseEvent) => {
