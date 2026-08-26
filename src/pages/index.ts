@@ -3,3 +3,4 @@ export * from './LandingPage';
 export * from './NotFoundPage';
 export * from './PlaceholderPage';
 export * from './SignupPage';
+export * from './WineListPage';
