@@ -20,6 +20,12 @@ export function RecommendedWineCarousel({ wines, onOpen }: RecommendedWineCarous
     return firstItem && duplicateFirstItem ? duplicateFirstItem.offsetLeft - firstItem.offsetLeft : 0;
   }, [wines.length]);
 
+  const getStepWidth = (element: HTMLDivElement) => {
+    const firstItem = element.children[0] as HTMLElement | undefined;
+    const secondItem = element.children[1] as HTMLElement | undefined;
+    return firstItem && secondItem ? secondItem.offsetLeft - firstItem.offsetLeft : element.clientWidth;
+  };
+
   const updateControls = useCallback(() => {
     const element = scrollRef.current;
     if (!element) return;
@@ -39,7 +45,7 @@ export function RecommendedWineCarousel({ wines, onOpen }: RecommendedWineCarous
     const interval = window.setInterval(() => {
       const element = scrollRef.current;
       if (!element) return;
-      element.scrollBy({ left: element.clientWidth * 0.8, behavior: 'smooth' });
+      element.scrollBy({ left: getStepWidth(element), behavior: 'smooth' });
     }, 4000);
     return () => window.clearInterval(interval);
   }, [isPaused, wines.length]);
@@ -49,7 +55,7 @@ export function RecommendedWineCarousel({ wines, onOpen }: RecommendedWineCarous
     if (!element) return;
     const cycleWidth = getCycleWidth(element);
     if (direction === -1 && element.scrollLeft <= 2 && cycleWidth) element.scrollLeft = cycleWidth;
-    element.scrollBy({ left: element.clientWidth * 0.8 * direction, behavior: 'smooth' });
+    element.scrollBy({ left: getStepWidth(element) * direction, behavior: 'smooth' });
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
