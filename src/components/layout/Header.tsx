@@ -21,8 +21,8 @@ export function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-1/2 z-40 container-whyne -translate-x-1/2 bg-black text-white">
-      <div className="flex min-h-16 items-center justify-between gap-5 px-5 tablet:min-h-20 tablet:px-6">
+    <header className="fixed inset-x-0 top-0 z-40 bg-black text-white">
+      <div className="container-whyne flex min-h-16 items-center justify-between gap-5 px-5 tablet:min-h-20 tablet:px-6">
         <Link aria-label="WHYNE 홈" className="inline-flex items-center" to="/">
           <Logo />
         </Link>
