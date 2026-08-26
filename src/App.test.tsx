@@ -7,6 +7,6 @@ describe('App', () => {
   it('renders the WHYNE title', () => {
     window.history.pushState({}, '', '/WHYNE/');
     render(<App />);
-    expect(screen.getByRole('heading', { name: '나만의 와인 창고, WHYNE' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /한 곳에서 관리하는.*나만의 와인창고/ })).toBeInTheDocument();
   });
 });

@@ -57,9 +57,11 @@ body {
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 img {
@@ -90,4 +92,11 @@ select {
 @utility touch-target {
   min-width: 44px;
   min-height: 44px;
+}
+
+@utility landing-preview-card {
+  border-radius: 40px 0 40px 0;
+  background:
+    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 85%), transparent 40%),
+    #f3f3f3;
 }
