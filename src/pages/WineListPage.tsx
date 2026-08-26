@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { WineFilters as WineFilterValues } from '../api/wines';
 import { Button, EmptyState, ErrorState, Loading, Modal, WineCard } from '../components';
 import { WineFilters } from '../features/wines/WineFilters';
+import { RecommendedWineCarousel } from '../features/wines/RecommendedWineCarousel';
 import { useWines } from '../hooks/useWines';
 
 const initialFilters: WineFilterValues = { search: '', types: [], minPrice: 0, maxPrice: 500000, ratingMin: null, ratingMax: null };
@@ -43,7 +44,7 @@ export function WineListPage() {
   return (
     <main className="bg-white pb-24">
       <section className="bg-gray-100 py-10 tablet:py-14">
-        <div className="container-whyne"><h1 className="text-xl font-bold tablet:text-2xl">이번 달 추천 와인</h1><div className="mt-8 grid grid-cols-2 gap-8 tablet:grid-cols-3 desktop:grid-cols-4">{recommendedWines.slice(0, 4).map((wine) => <button className="text-center" key={wine.id} onClick={() => void navigate(`/wines/${wine.id}`)} type="button"><img alt="" className="mx-auto h-36 object-contain tablet:h-48" src={wine.imageUrl} /><b className="mt-3 block text-sm">{wine.name}</b><span className="mt-2 block text-xs text-gray-600">{wine.region}</span></button>)}</div></div>
+        <div className="container-whyne"><h1 className="text-xl font-bold tablet:text-2xl">이번 달 추천 와인</h1><RecommendedWineCarousel onOpen={(id) => void navigate(`/wines/${id}`)} wines={recommendedWines.slice(0, 8)} /></div>
       </section>
       <section className="container-whyne pt-10 tablet:pt-14"><div className="sticky top-16 z-30 -mx-4 bg-white px-4 py-3 tablet:-mx-6 tablet:px-6 desktop:static desktop:mx-0 desktop:p-0"><label className="relative block desktop:ml-auto desktop:w-[calc(100%-310px)]"><span className="sr-only">와인 검색</span><input className="min-h-14 w-full rounded-sm border border-gray-300 bg-white px-14 text-base placeholder:text-gray-600 focus:border-primary" onChange={(event) => updateFilters({ ...filters, search: event.target.value })} placeholder="와인을 검색해 보세요" type="search" value={filters.search} /><span aria-hidden="true" className="absolute left-5 top-1/2 -translate-y-1/2 text-xl">⌕</span></label>
       <div className="mt-3 flex items-center justify-between desktop:hidden"><Button onClick={() => setIsFilterOpen(true)} size="icon" variant="secondary"><span aria-hidden="true">☷</span><span className="sr-only">필터</span></Button><Button onClick={() => void navigate('/login')}>와인 등록하기</Button></div></div>
