@@ -11,6 +11,7 @@ import {
 import { Button, EmptyState, ErrorState, Loading, Modal, Rating, ReviewCard } from '../components';
 import { useAuth } from '../features/auth/AuthContext';
 import { ReviewForm } from '../features/wines/ReviewForm';
+import { getAromaImage } from '../features/wines/aromaAssets';
 import { useWineDetail } from '../hooks/useWineDetail';
 
 const tasteLabels = [
@@ -19,15 +20,6 @@ const tasteLabels = [
   ['당도', '드라이해요', '달아요', 'drySweet'],
   ['산미', '부드러워요', '많이셔요', 'softAcidic'],
 ] as const;
-const aromaVisuals: Record<string, { emoji: string; tone: string }> = {
-  체리: { emoji: '🍒', tone: 'bg-red-100' },
-  블랙베리: { emoji: '🫐', tone: 'bg-violet-100' },
-  시트러스: { emoji: '🍊', tone: 'bg-amber-100' },
-  오크: { emoji: '🪵', tone: 'bg-amber-200' },
-  바닐라: { emoji: '🌼', tone: 'bg-yellow-100' },
-  스파이스: { emoji: '🌿', tone: 'bg-orange-100' },
-  토스트: { emoji: '🍞', tone: 'bg-stone-100' },
-};
 
 export function WineDetailPage() {
   const { wineId } = useParams();
@@ -132,17 +124,17 @@ export function WineDetailPage() {
             <p className="mt-1 text-xs text-gray-600">({wine.reviewCount}명 참여)</p>
             {topAromas.length ? (
               <div className="mt-5 grid grid-cols-3 gap-3 tablet:grid-cols-4">
-                {topAromas.map((aroma) => {
-                  const visual = aromaVisuals[aroma.name] ?? { emoji: '🍷', tone: 'bg-gray-100' };
+                {topAromas.map((aroma, index) => {
                   return (
-                    <div className="min-w-0 text-center" key={aroma.name}>
-                      <div
-                        aria-label={`${aroma.name} 이미지`}
-                        className={`grid aspect-square place-items-center rounded-lg text-3xl ${visual.tone}`}
-                        role="img"
-                      >
-                        {visual.emoji}
-                      </div>
+                    <div
+                      className={`min-w-0 text-center ${index === 3 ? 'hidden tablet:block' : ''}`}
+                      key={aroma.name}
+                    >
+                      <img
+                        alt={`${aroma.name} 향`}
+                        className="aspect-square w-full rounded-lg object-cover"
+                        src={getAromaImage(aroma.name)}
+                      />
                       <p className="mt-2 truncate text-xs font-medium">{aroma.name}</p>
                     </div>
                   );
@@ -183,7 +175,12 @@ export function WineDetailPage() {
                         return;
                       }
                       void toggleReviewLike(review.id, user.id, Boolean(review.isLiked)).then(
-                        refreshDetail,
+                        async () => {
+                          await Promise.all([
+                            refreshDetail(),
+                            queryClient.invalidateQueries({ queryKey: ['myReviews', user.id] }),
+                          ]);
+                        },
                       );
                     }}
                     review={review}
@@ -199,16 +196,16 @@ export function WineDetailPage() {
               </div>
             )}
           </div>
-          <aside className="sticky top-16 z-20 order-first self-start bg-white py-3 tablet:top-20 desktop:top-28 desktop:order-none desktop:bg-transparent desktop:py-0">
-            <div className="grid grid-cols-[minmax(120px,0.85fr)_minmax(0,1.15fr)] gap-x-5 rounded-lg border border-gray-300 bg-white p-4 tablet:p-5 desktop:block desktop:border-0 desktop:bg-gray-100">
-              <div className="flex flex-col items-start gap-1 self-start desktop:flex-row desktop:items-center desktop:gap-2">
+          <aside className="sticky top-16 z-20 order-first -mx-4 self-start border-y border-gray-300 bg-white px-4 py-6 tablet:top-20 tablet:-mx-6 tablet:px-6 desktop:top-28 desktop:order-none desktop:mx-0 desktop:border-0 desktop:bg-transparent desktop:p-0">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-x-6 desktop:block desktop:bg-gray-100 desktop:p-5">
+              <div className="flex flex-col items-start gap-2 self-start">
                 <Rating size="sm" value={wine.averageRating} />
-                <b>
+                <b className="text-xl">
                   {wine.averageRating.toFixed(1)}{' '}
-                  <span className="font-normal text-gray-600">/ 5.0</span>
+                  <span className="text-sm font-normal text-gray-600">/ 5.0</span>
                 </b>
               </div>
-              <div className="mt-1 space-y-2 tablet:mt-0 desktop:mt-5">
+              <div className="space-y-2 desktop:mt-6">
                 {[5, 4, 3, 2, 1].map((rating) => (
                   <RatingRow
                     count={wine.ratingDistribution[rating - 1] ?? 0}
@@ -219,7 +216,7 @@ export function WineDetailPage() {
                 ))}
               </div>
               <button
-                className="col-span-2 mt-5 w-full self-end rounded-sm bg-primary px-3 py-3 text-sm font-semibold text-gray-100 tablet:col-span-1 desktop:mt-6 desktop:px-5"
+                className="col-span-2 mt-6 w-full rounded-sm bg-primary px-5 py-3 text-sm font-semibold text-gray-100 desktop:mt-6"
                 onClick={openReviewForm}
                 type="button"
               >

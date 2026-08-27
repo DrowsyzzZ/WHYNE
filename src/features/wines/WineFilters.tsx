@@ -38,9 +38,9 @@ export function WineFilters({
     onChange({ ...filters, types: selectedType === type ? [] : [type] });
 
   return (
-    <aside aria-label="와인 필터" className="space-y-12">
+    <aside aria-label="와인 필터" className="relative space-y-12">
       {onReset && (
-        <div className="flex justify-end">
+        <div className="absolute top-0 right-0">
           <button
             className="text-sm text-gray-600 underline-offset-4 hover:text-primary hover:underline"
             onClick={onReset}
