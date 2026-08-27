@@ -200,7 +200,7 @@ export function WineDetailPage() {
             )}
           </div>
           <aside className="sticky top-16 z-20 order-first self-start bg-white py-3 tablet:top-20 desktop:top-28 desktop:order-none desktop:bg-transparent desktop:py-0">
-            <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(132px,1.1fr)] gap-x-5 rounded-lg border-y border-gray-300 bg-white py-5 desktop:block desktop:border-0 desktop:bg-gray-100 desktop:p-5">
+            <div className="grid grid-cols-[minmax(120px,0.85fr)_minmax(0,1.15fr)] gap-x-5 rounded-lg border border-gray-300 bg-white p-4 tablet:p-5 desktop:block desktop:border-0 desktop:bg-gray-100">
               <div className="flex flex-col items-start gap-1 self-start desktop:flex-row desktop:items-center desktop:gap-2">
                 <Rating size="sm" value={wine.averageRating} />
                 <b>
@@ -208,7 +208,7 @@ export function WineDetailPage() {
                   <span className="font-normal text-gray-600">/ 5.0</span>
                 </b>
               </div>
-              <div className="mt-5 space-y-2">
+              <div className="mt-1 space-y-2 tablet:mt-0 desktop:mt-5">
                 {[5, 4, 3, 2, 1].map((rating) => (
                   <RatingRow
                     count={wine.ratingDistribution[rating - 1] ?? 0}
