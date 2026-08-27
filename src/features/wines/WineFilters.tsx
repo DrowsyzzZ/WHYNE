@@ -21,11 +21,13 @@ const ratingOptions = [
 export function WineFilters({
   filters,
   onChange,
+  onReset,
   horizontalTypes = false,
   showLikedOnly = true,
 }: {
   filters: WineFilterValues;
   onChange: (next: WineFilterValues) => void;
+  onReset?: () => void;
   horizontalTypes?: boolean;
   showLikedOnly?: boolean;
 }) {
@@ -37,6 +39,17 @@ export function WineFilters({
 
   return (
     <aside aria-label="와인 필터" className="space-y-12">
+      {onReset && (
+        <div className="flex justify-end">
+          <button
+            className="text-sm text-gray-600 underline-offset-4 hover:text-primary hover:underline"
+            onClick={onReset}
+            type="button"
+          >
+            필터 초기화
+          </button>
+        </div>
+      )}
       <fieldset>
         <legend className="mb-5 text-xl font-bold">타입</legend>
         <div
