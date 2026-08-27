@@ -10,9 +10,9 @@ export function LandingPage() {
     <>
       <Header />
       <main className="overflow-hidden bg-white text-black">
-        <section className="relative min-h-[465px] overflow-hidden rounded-b-xl text-white tablet:min-h-[625px] desktop:min-h-[660px]">
-          <div className="relative z-10 container-whyne pt-32 tablet:pt-40 desktop:pt-44">
-            <h1 className="text-3xl leading-tight font-bold tracking-tight tablet:text-4xl desktop:text-[42px]">
+        <section className="relative min-h-108 overflow-hidden bg-amber-600 text-[#f2f4f8] tablet:min-h-170.75 desktop:min-h-182.5">
+          <div className="relative z-10 container-whyne pt-25.5 pl-5.5 tablet:pt-35.5 tablet:pl-15 desktop:pt-45">
+            <h1 className="text-2xl leading-9 font-bold tracking-[-0.03em] tablet:text-[32px] tablet:leading-11.5">
               한 곳에서 관리하는
               <br />
               나만의 와인창고
@@ -26,61 +26,72 @@ export function LandingPage() {
           />
         </section>
 
-        <section className="container-whyne pt-28 pb-28 tablet:pt-40">
-          <div className="space-y-24 tablet:space-y-32 desktop:space-y-40">
-            <section className="grid gap-10 desktop:grid-cols-[0.7fr_1.3fr] desktop:items-center">
-              <div>
-                <h2 className="text-2xl leading-tight font-bold tablet:text-3xl">
-                  매달 새롭게 만나는
-                  <br />
-                  와인 추천 콘텐츠
-                </h2>
-                <p className="mt-4 text-sm text-gray-600 tablet:text-base">
-                  매달 다양한 인기 와인을 만나보세요.
-                </p>
-              </div>
-              <div className="overflow-hidden rounded-tl-[40px] rounded-br-[40px]">
-                <img
-                  alt="이번 달 추천 와인 목록"
-                  className="h-full w-full object-contain"
-                  src={wine2}
-                />
-              </div>
-            </section>
+        <section className="mx-auto mt-4 w-full pb-18 tablet:mt-6.75 tablet:max-w-285 tablet:pb-22.5 desktop:mt-8.75 desktop:pb-37.75">
+          <section className="grid justify-items-end gap-5 py-6 pl-4 tablet:gap-8 tablet:py-8.75 tablet:pl-8 desktop:grid-cols-[1fr_auto] desktop:items-center desktop:gap-35 desktop:py-10.75 desktop:pl-0">
+            <div className="w-full px-4 tracking-[-0.02em] tablet:px-5.75">
+              <h2 className="text-2xl leading-6 font-semibold text-[#2d3034] tablet:leading-8">
+                매달 새롭게 만나는
+                <br />
+                와인 추천 콘텐츠
+              </h2>
+              <p className="mt-2 text-sm leading-5 text-[#a3a3a3] tablet:mt-4 tablet:text-base tablet:leading-6">
+                매달 다양한 인기 와인을 만나보세요.
+              </p>
+            </div>
+            <div className="max-h-117.5 overflow-hidden rounded-tl-[40px] rounded-bl-[40px] desktop:h-117.5">
+              <img
+                alt="이번 달 추천 와인 목록"
+                className="h-full w-full object-contain"
+                src={wine2}
+              />
+            </div>
+          </section>
 
-            <section className="grid gap-10 desktop:grid-cols-[1.3fr_0.7fr] desktop:items-center">
-              <div className="desktop:order-2">
-                <h2 className="text-2xl leading-tight font-bold tablet:text-3xl">
-                  다양한 필터로 찾는
-                  <br />내 맞춤 와인
-                </h2>
-                <p className="mt-4 text-sm text-gray-600 tablet:text-base">
-                  와인 타입, 가격, 평점으로
-                  <br />
-                  나에게 맞는 와인을 쉽게 검색해요.
-                </p>
-              </div>
-              <img alt="와인 타입, 가격, 평점 필터 화면" className="w-full" src={wine3} />
-            </section>
+          <section className="grid justify-items-start gap-5 py-6 pr-4 tablet:gap-8 tablet:py-8.75 tablet:pr-8 desktop:grid-cols-[auto_1fr] desktop:items-center desktop:gap-35 desktop:py-10.75 desktop:pr-0">
+            <div className="w-full px-4 tracking-[-0.02em] tablet:px-5.75 desktop:order-2">
+              <h2 className="text-2xl leading-6 font-semibold text-[#2d3034] tablet:leading-8">
+                다양한 필터로 찾는
+                <br />내 맞춤 와인
+              </h2>
+              <p className="mt-2 text-sm leading-5 text-[#a3a3a3] tablet:mt-4 tablet:text-base tablet:leading-6">
+                와인 타입, 가격, 평점으로
+                <br />
+                나에게 맞는 와인을 쉽게 검색해요.
+              </p>
+            </div>
+            <div className="max-h-117.5 overflow-hidden rounded-tr-[40px] rounded-br-[40px] desktop:order-1 desktop:h-117.5">
+              <img
+                alt="와인 타입, 가격, 평점 필터 화면"
+                className="h-full w-full object-contain"
+                src={wine3}
+              />
+            </div>
+          </section>
 
-            <section className="grid gap-10 desktop:grid-cols-[0.7fr_1.3fr] desktop:items-center">
-              <div>
-                <h2 className="text-2xl leading-tight font-bold tablet:text-3xl">
-                  직관적인
-                  <br />
-                  리뷰 시스템
-                </h2>
-                <p className="mt-4 text-sm text-gray-600 tablet:text-base">
-                  더 구체화된 리뷰 시스템으로
-                  <br />
-                  쉽고 빠르게 와인 리뷰를 살펴보세요.
-                </p>
-              </div>
-              <img alt="와인 상세 정보와 사용자 리뷰 화면" className="w-full" src={wine4} />
-            </section>
-          </div>
+          <section className="grid justify-items-end gap-5 py-6 pl-4 tablet:gap-8 tablet:py-8.75 tablet:pl-8 desktop:grid-cols-[1fr_auto] desktop:items-center desktop:gap-35 desktop:py-10.75 desktop:pl-0">
+            <div className="w-full px-4 tracking-[-0.02em] tablet:px-5.75">
+              <h2 className="text-2xl leading-6 font-semibold text-[#2d3034] tablet:leading-8">
+                직관적인
+                <br />
+                리뷰 시스템
+              </h2>
+              <p className="mt-2 text-sm leading-5 text-[#a3a3a3] tablet:mt-4 tablet:text-base tablet:leading-6">
+                더 구체화된 리뷰 시스템으로
+                <br />
+                쉽고 빠르게 와인 리뷰를 살펴보세요.
+              </p>
+            </div>
+            <div className="max-h-117.5 overflow-hidden rounded-tl-[40px] rounded-bl-[40px] desktop:h-117.5">
+              <img
+                alt="와인 상세 정보와 사용자 리뷰 화면"
+                className="h-full w-full object-contain"
+                src={wine4}
+              />
+            </div>
+          </section>
+
           <Link
-            className="mx-auto mt-24 flex min-h-14 max-w-lg items-center justify-center rounded-md bg-primary px-8 font-semibold text-gray-100 transition-colors hover:bg-primary-hover tablet:mt-32"
+            className="mx-auto mt-11.25 flex min-h-10.5 max-w-68 items-center justify-center rounded bg-primary text-sm leading-4.5 font-medium text-gray-100 transition-colors hover:bg-primary-hover tablet:mt-[60px] tablet:min-h-12.5 tablet:max-w-70.75 tablet:text-[16px] tablet:leading-5 desktop:mt-18.5"
             to="/wines"
           >
             와인 보러가기
