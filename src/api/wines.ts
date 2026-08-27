@@ -654,7 +654,7 @@ export async function getMyReviews(authorId: string): Promise<MyReview[]> {
         ? client.from('wines').select('id,name,region,image_path').in('id', wineIds)
         : Promise.resolve({ data: [], error: null }),
       reviewIds.length
-        ? client.from('review_likes').select('review_id').in('review_id', reviewIds)
+        ? client.from('review_likes').select('review_id,user_id').in('review_id', reviewIds)
         : Promise.resolve({ data: [], error: null }),
     ]);
   if (winesError) throw winesError;
@@ -671,6 +671,9 @@ export async function getMyReviews(authorId: string): Promise<MyReview[]> {
     content: review.content,
     aromas: review.aromas,
     likeCount: likeCounts.get(review.id) ?? 0,
+    isLiked: (likes ?? []).some(
+      (like) => like.review_id === review.id && like.user_id === authorId,
+    ),
     createdAt: review.created_at,
     taste: {
       lightBold: review.light_bold,

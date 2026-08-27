@@ -45,6 +45,7 @@ export function MyProfilePage() {
     queryKey: ['myReviews', userId],
     queryFn: () => getMyReviews(userId),
     enabled: Boolean(userId),
+    refetchOnMount: 'always',
   });
   const deleteMutation = useMutation({
     mutationFn: async (target: { kind: 'wine' | 'review'; id: string }) =>
@@ -224,7 +225,7 @@ export function MyProfilePage() {
                     <MiniTasteBar label="산미" value={review.taste.softAcidic} />
                   </div>
                   <div className="mt-6 inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-1.5 text-primary">
-                    <span aria-hidden="true">♡</span>
+                    <span aria-hidden="true">{review.isLiked ? '♥' : '♡'}</span>
                     <span>{review.likeCount}</span>
                   </div>
                 </article>

@@ -146,6 +146,16 @@ export function WineListPage() {
               <Button aria-label="필터" onClick={openFilters} size="icon" variant="secondary">
                 <span aria-hidden="true">☷</span>
               </Button>
+              {hasActiveFilters(filters) && (
+                <Button
+                  aria-label="필터 초기화"
+                  onClick={() => updateFilters(initialFilters)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  초기화
+                </Button>
+              )}
               <Button
                 aria-label={filters.likedOnly ? '전체 와인 보기' : '좋아요한 와인만 보기'}
                 aria-pressed={filters.likedOnly}
@@ -214,11 +224,6 @@ export function WineListPage() {
           filters={draftFilters}
           horizontalTypes
           onChange={setDraftFilters}
-          onReset={
-            hasActiveFilters(draftFilters)
-              ? () => setDraftFilters({ ...initialFilters, likedOnly: false })
-              : undefined
-          }
           showLikedOnly={false}
         />
         <Button

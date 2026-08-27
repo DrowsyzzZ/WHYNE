@@ -1,20 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { ReviewInput, WineReview, WineDetail } from '../../api/wines';
 import { Button } from '../../components';
-
-const aromaOptions = [
-  '체리',
-  '베리',
-  '오크',
-  '바닐라',
-  '후추',
-  '제빵',
-  '풀',
-  '사과',
-  '복숭아',
-  '시트러스',
-  '트로피컬',
-];
+import { aromaOptions } from './aromaAssets';
 const tasteFields = [
   ['바디감', 'lightBold', '가벼워요', '진해요'],
   ['탄닌', 'smoothTannic', '부드러워요', '떫어요'],
