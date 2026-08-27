@@ -22,6 +22,14 @@ const initialFilters: WineFilterValues = {
 };
 const PAGE_SIZE = 8;
 
+const hasActiveFilters = (filters: WineFilterValues) =>
+  filters.search !== '' ||
+  filters.types.length > 0 ||
+  filters.minPrice !== initialFilters.minPrice ||
+  filters.maxPrice !== initialFilters.maxPrice ||
+  filters.ratingMin !== null ||
+  filters.ratingMax !== null;
+
 export function WineListPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -53,6 +61,8 @@ export function WineListPage() {
     setFilters(next);
     setVisibleCount(PAGE_SIZE);
   };
+  const applyStandardFilters = (next: WineFilterValues) =>
+    updateFilters({ ...next, likedOnly: false });
 
   useEffect(() => {
     const handleScroll = () => setShowToTop(window.scrollY > 600);
@@ -98,7 +108,11 @@ export function WineListPage() {
       setShowLikeLogin(true);
       return;
     }
-    updateFilters({ ...filters, likedOnly: !filters.likedOnly });
+    if (filters.likedOnly) {
+      updateFilters(initialFilters);
+      return;
+    }
+    updateFilters({ ...initialFilters, likedOnly: true });
   };
 
   return (
@@ -118,7 +132,7 @@ export function WineListPage() {
             <span className="sr-only">와인 검색</span>
             <input
               className="min-h-14 w-full rounded-sm border border-gray-300 bg-white px-14 text-base placeholder:text-gray-600 focus:border-primary"
-              onChange={(event) => updateFilters({ ...filters, search: event.target.value })}
+              onChange={(event) => applyStandardFilters({ ...filters, search: event.target.value })}
               placeholder="와인을 검색해 보세요"
               type="search"
               value={filters.search}
@@ -150,7 +164,11 @@ export function WineListPage() {
         </div>
         <div className="mt-8 grid gap-10 desktop:grid-cols-[260px_1fr]">
           <div className="hidden self-start desktop:sticky desktop:top-24 desktop:block">
-            <WineFilters filters={filters} onChange={updateFilters} />
+            <WineFilters
+              filters={filters}
+              onChange={applyStandardFilters}
+              onReset={hasActiveFilters(filters) ? () => updateFilters(initialFilters) : undefined}
+            />
             <Button className="mt-10 w-full" onClick={openWineForm}>
               와인 등록하기
             </Button>
@@ -196,12 +214,17 @@ export function WineListPage() {
           filters={draftFilters}
           horizontalTypes
           onChange={setDraftFilters}
+          onReset={
+            hasActiveFilters(draftFilters)
+              ? () => setDraftFilters({ ...initialFilters, likedOnly: false })
+              : undefined
+          }
           showLikedOnly={false}
         />
         <Button
           className="mt-8 w-full"
           onClick={() => {
-            updateFilters(draftFilters);
+            applyStandardFilters(draftFilters);
             setIsFilterOpen(false);
           }}
         >
