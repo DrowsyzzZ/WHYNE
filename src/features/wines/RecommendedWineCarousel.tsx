@@ -78,10 +78,10 @@ export function RecommendedWineCarousel({ wines, onOpen }: RecommendedWineCarous
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     setIsPaused(true);
+    draggedRef.current = false;
     if (event.pointerType === 'touch') return;
     const element = scrollRef.current;
     if (!element) return;
-    draggedRef.current = false;
     dragStartRef.current = { pointerX: event.clientX, scrollLeft: element.scrollLeft };
     element.setPointerCapture(event.pointerId);
   };

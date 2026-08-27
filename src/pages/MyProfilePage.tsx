@@ -6,12 +6,15 @@ import {
   deleteWine,
   getMyReviews,
   getMyWines,
+  updateReview,
   updateWine,
+  type MyReview,
   type WineListItem,
 } from '../api/wines';
 import { getProfile, updateProfile } from '../api/profiles';
 import { Button, EmptyState, ErrorState, Loading, Modal, Rating } from '../components';
 import { useAuth } from '../features/auth/AuthContext';
+import { ReviewForm } from '../features/wines/ReviewForm';
 import { WineForm } from '../features/wines/WineForm';
 
 export function MyProfilePage() {
@@ -20,6 +23,8 @@ export function MyProfilePage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<'reviews' | 'wines'>('reviews');
   const [editingWine, setEditingWine] = useState<WineListItem | null>(null);
+  const [editingReview, setEditingReview] = useState<MyReview | null>(null);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ kind: 'wine' | 'review'; id: string } | null>(
     null,
   );
@@ -113,7 +118,7 @@ export function MyProfilePage() {
           </label>
           <h1 className="mt-5 text-xl font-bold">{profile?.nickname}</h1>
           <form
-            className="mt-6 w-full"
+            className="mt-6 grid w-full max-w-[320px] grid-cols-[minmax(0,1fr)_auto] items-end gap-3"
             key={profile?.nickname}
             onSubmit={(event) => {
               event.preventDefault();
@@ -131,12 +136,7 @@ export function MyProfilePage() {
                 name="nickname"
               />
             </label>
-            <Button
-              className="mt-3 w-full"
-              isLoading={profileMutation.isPending}
-              size="sm"
-              type="submit"
-            >
+            <Button isLoading={profileMutation.isPending} size="sm" type="submit">
               변경하기
             </Button>
           </form>
@@ -168,33 +168,64 @@ export function MyProfilePage() {
         </div>
         {tab === 'reviews' ? (
           reviews.length ? (
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 divide-y divide-gray-300 border-y border-gray-300">
               {reviews.map((review) => (
-                <article className="rounded-lg border border-gray-300 p-5" key={review.id}>
-                  <button
-                    className="text-left font-semibold hover:text-primary"
-                    onClick={() => void navigate(`/wines/${review.wineId}`)}
-                    type="button"
-                  >
-                    {review.wineName}
-                  </button>
-                  <Rating className="mt-3" size="sm" value={review.rating} />
-                  <p className="mt-3 line-clamp-3 text-sm leading-6">{review.content}</p>
-                  <div className="mt-4 flex justify-end gap-2">
-                    <Button
-                      onClick={() => void navigate(`/wines/${review.wineId}`)}
-                      size="sm"
-                      variant="secondary"
-                    >
-                      수정
-                    </Button>
-                    <Button
-                      onClick={() => setDeleteTarget({ kind: 'review', id: review.id })}
-                      size="sm"
-                      variant="danger"
-                    >
-                      삭제
-                    </Button>
+                <article className="relative py-7" key={review.id}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <Rating size="sm" value={review.rating} />
+                        <b>{review.rating.toFixed(1)}</b>
+                        <time className="text-xs text-gray-600">
+                          {new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                        </time>
+                      </div>
+                      <button
+                        className="mt-5 flex items-center gap-3 text-left hover:text-primary"
+                        onClick={() => void navigate(`/wines/${review.wineId}`)}
+                        type="button"
+                      >
+                        <span className="grid size-14 shrink-0 place-items-center bg-gray-100 p-1.5">
+                          <img
+                            alt=""
+                            className="size-full object-contain"
+                            src={review.wineImageUrl}
+                          />
+                        </span>
+                        <span>
+                          <b className="line-clamp-2 block">{review.wineName}</b>
+                          <small className="mt-1 block text-gray-600">{review.wineRegion}</small>
+                        </span>
+                      </button>
+                    </div>
+                    <ActionMenu
+                      id={`review-${review.id}`}
+                      isOpen={openMenu === `review-${review.id}`}
+                      onDelete={() => {
+                        setDeleteTarget({ kind: 'review', id: review.id });
+                        setOpenMenu(null);
+                      }}
+                      onEdit={() => {
+                        setEditingReview(review);
+                        setOpenMenu(null);
+                      }}
+                      onToggle={() =>
+                        setOpenMenu((current) =>
+                          current === `review-${review.id}` ? null : `review-${review.id}`,
+                        )
+                      }
+                    />
+                  </div>
+                  <p className="mt-5 text-sm leading-6">{review.content}</p>
+                  <div className="mt-6 grid gap-x-8 gap-y-3 tablet:grid-cols-2">
+                    <MiniTasteBar label="바디감" value={review.taste.lightBold} />
+                    <MiniTasteBar label="탄닌" value={review.taste.smoothTannic} />
+                    <MiniTasteBar label="당도" value={review.taste.drySweet} />
+                    <MiniTasteBar label="산미" value={review.taste.softAcidic} />
+                  </div>
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-1.5 text-primary">
+                    <span aria-hidden="true">♡</span>
+                    <span>{review.likeCount}</span>
                   </div>
                 </article>
               ))}
@@ -208,31 +239,38 @@ export function MyProfilePage() {
             </div>
           )
         ) : wines.length ? (
-          <div className="mt-8 grid gap-5 tablet:grid-cols-2">
+          <div className="mt-8 grid gap-x-8 gap-y-10 tablet:grid-cols-2">
             {wines.map((wine) => (
-              <article className="flex gap-4 rounded-lg border border-gray-300 p-4" key={wine.id}>
+              <article className="relative min-w-0" key={wine.id}>
                 <button
-                  className="grid size-28 shrink-0 place-items-center bg-gray-100 p-3"
+                  className="grid aspect-square w-full place-items-center bg-gray-100 p-8"
                   onClick={() => void navigate(`/wines/${wine.id}`)}
                   type="button"
                 >
-                  <img alt="" className="size-full object-contain" src={wine.imageUrl} />
+                  <img alt="" className="h-full max-w-full object-contain" src={wine.imageUrl} />
                 </button>
-                <div className="min-w-0 flex-1">
+                <div className="relative mt-4 pr-10">
                   <h2 className="line-clamp-2 font-semibold">{wine.name}</h2>
-                  <p className="mt-1 text-sm text-gray-600">{wine.region}</p>
-                  <p className="mt-2 font-bold">{wine.price.toLocaleString('ko-KR')}원</p>
-                  <div className="mt-4 flex gap-2">
-                    <Button onClick={() => setEditingWine(wine)} size="sm" variant="secondary">
-                      수정
-                    </Button>
-                    <Button
-                      onClick={() => setDeleteTarget({ kind: 'wine', id: wine.id })}
-                      size="sm"
-                      variant="danger"
-                    >
-                      삭제
-                    </Button>
+                  <p className="mt-1 text-xs text-gray-600">{wine.region}</p>
+                  <p className="mt-4 text-lg font-bold">{wine.price.toLocaleString('ko-KR')}원</p>
+                  <div className="absolute top-0 right-0">
+                    <ActionMenu
+                      id={`wine-${wine.id}`}
+                      isOpen={openMenu === `wine-${wine.id}`}
+                      onDelete={() => {
+                        setDeleteTarget({ kind: 'wine', id: wine.id });
+                        setOpenMenu(null);
+                      }}
+                      onEdit={() => {
+                        setEditingWine(wine);
+                        setOpenMenu(null);
+                      }}
+                      onToggle={() =>
+                        setOpenMenu((current) =>
+                          current === `wine-${wine.id}` ? null : `wine-${wine.id}`,
+                        )
+                      }
+                    />
                   </div>
                 </div>
               </article>
@@ -247,6 +285,33 @@ export function MyProfilePage() {
           </div>
         )}
       </section>
+      <Modal
+        isOpen={Boolean(editingReview)}
+        onClose={() => setEditingReview(null)}
+        size="lg"
+        title="리뷰 수정하기"
+      >
+        {editingReview && (
+          <ReviewForm
+            initialReview={editingReview}
+            onSubmit={async (input) => {
+              await updateReview(editingReview.id, userId, input);
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['myReviews', userId] }),
+                queryClient.invalidateQueries({ queryKey: ['wine', editingReview.wineId] }),
+                queryClient.invalidateQueries({ queryKey: ['wines'] }),
+                queryClient.invalidateQueries({ queryKey: ['recommendedWines'] }),
+              ]);
+              setEditingReview(null);
+            }}
+            wine={{
+              imageUrl: editingReview.wineImageUrl,
+              name: editingReview.wineName,
+              region: editingReview.wineRegion,
+            }}
+          />
+        )}
+      </Modal>
       <Modal
         isOpen={Boolean(editingWine)}
         onClose={() => setEditingWine(null)}
@@ -290,5 +355,74 @@ export function MyProfilePage() {
         </div>
       </Modal>
     </main>
+  );
+}
+
+function ActionMenu({
+  id,
+  isOpen,
+  onDelete,
+  onEdit,
+  onToggle,
+}: {
+  id: string;
+  isOpen: boolean;
+  onDelete: () => void;
+  onEdit: () => void;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        aria-expanded={isOpen}
+        aria-label="작업 메뉴"
+        aria-controls={`${id}-menu`}
+        className="grid size-9 place-items-center rounded-full text-xl text-gray-600 hover:bg-gray-100"
+        onClick={onToggle}
+        type="button"
+      >
+        <span aria-hidden="true">⋮</span>
+      </button>
+      {isOpen && (
+        <div
+          className="absolute top-9 right-0 z-20 w-28 overflow-hidden rounded-md border border-gray-300 bg-white py-1 shadow-modal"
+          id={`${id}-menu`}
+          role="menu"
+        >
+          <button
+            className="min-h-10 w-full px-4 text-left text-sm hover:bg-gray-100"
+            onClick={onEdit}
+            role="menuitem"
+            type="button"
+          >
+            수정하기
+          </button>
+          <button
+            className="min-h-10 w-full px-4 text-left text-sm hover:bg-gray-100"
+            onClick={onDelete}
+            role="menuitem"
+            type="button"
+          >
+            삭제하기
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MiniTasteBar({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="grid grid-cols-[48px_1fr] items-center gap-3 text-xs">
+      <span className="rounded bg-gray-100 px-1.5 py-1 text-center text-gray-600">{label}</span>
+      <div aria-label={`${label} ${value}점`} className="grid grid-cols-5 gap-1">
+        {Array.from({ length: 5 }, (_, index) => (
+          <span
+            className={`h-2 rounded-sm ${index < Math.round(value) ? 'bg-primary' : 'bg-gray-200'}`}
+            key={index}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

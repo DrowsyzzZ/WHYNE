@@ -83,7 +83,9 @@ export interface WineDetail extends WineListItem {
 
 export interface MyReview extends WineReview {
   wineId: string;
+  wineImageUrl: string;
   wineName: string;
+  wineRegion: string;
 }
 
 const USE_MOCK_CATALOG =
@@ -627,7 +629,13 @@ export async function getMyReviews(authorId: string): Promise<MyReview[]> {
       const wine = mockWines.find((item) => item.id === wineId);
       for (const review of reviews)
         if (review.authorId === authorId)
-          result.push({ ...review, wineId, wineName: wine?.name ?? '와인' });
+          result.push({
+            ...review,
+            wineId,
+            wineImageUrl: wine?.imageUrl ?? submissionCabernet,
+            wineName: wine?.name ?? '와인',
+            wineRegion: wine?.region ?? '',
+          });
     }
     return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
@@ -639,11 +647,22 @@ export async function getMyReviews(authorId: string): Promise<MyReview[]> {
     .order('created_at', { ascending: false });
   if (error) throw error;
   const wineIds = [...new Set((data ?? []).map((review) => review.wine_id))];
-  const { data: wines, error: winesError } = wineIds.length
-    ? await client.from('wines').select('id,name').in('id', wineIds)
-    : { data: [], error: null };
+  const reviewIds = (data ?? []).map((review) => review.id);
+  const [{ data: wines, error: winesError }, { data: likes, error: likesError }] =
+    await Promise.all([
+      wineIds.length
+        ? client.from('wines').select('id,name,region,image_path').in('id', wineIds)
+        : Promise.resolve({ data: [], error: null }),
+      reviewIds.length
+        ? client.from('review_likes').select('review_id').in('review_id', reviewIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
   if (winesError) throw winesError;
-  const names = new Map((wines ?? []).map((wine) => [wine.id, wine.name]));
+  if (likesError) throw likesError;
+  const winesById = new Map((wines ?? []).map((wine) => [wine.id, wine]));
+  const likeCounts = new Map<string, number>();
+  for (const like of likes ?? [])
+    likeCounts.set(like.review_id, (likeCounts.get(like.review_id) ?? 0) + 1);
   return (data ?? []).map((review) => ({
     id: review.id,
     authorId: review.author_id,
@@ -651,7 +670,7 @@ export async function getMyReviews(authorId: string): Promise<MyReview[]> {
     rating: review.rating,
     content: review.content,
     aromas: review.aromas,
-    likeCount: 0,
+    likeCount: likeCounts.get(review.id) ?? 0,
     createdAt: review.created_at,
     taste: {
       lightBold: review.light_bold,
@@ -661,7 +680,11 @@ export async function getMyReviews(authorId: string): Promise<MyReview[]> {
     },
     isOwner: true,
     wineId: review.wine_id,
-    wineName: names.get(review.wine_id) ?? '와인',
+    wineImageUrl: winesById.get(review.wine_id)?.image_path
+      ? resolveWineImage(winesById.get(review.wine_id)!.image_path)
+      : submissionCabernet,
+    wineName: winesById.get(review.wine_id)?.name ?? '와인',
+    wineRegion: winesById.get(review.wine_id)?.region ?? '',
   }));
 }
 

@@ -27,6 +27,7 @@ export function WineListPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [filters, setFilters] = useState(initialFilters);
+  const [draftFilters, setDraftFilters] = useState(initialFilters);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showToTop, setShowToTop] = useState(false);
@@ -88,6 +89,17 @@ export function WineListPage() {
     }
     setIsWineFormOpen(true);
   };
+  const openFilters = () => {
+    setDraftFilters(filters);
+    setIsFilterOpen(true);
+  };
+  const toggleLikedOnly = () => {
+    if (!user) {
+      setShowLikeLogin(true);
+      return;
+    }
+    updateFilters({ ...filters, likedOnly: !filters.likedOnly });
+  };
 
   return (
     <main className="bg-white pb-24">
@@ -116,10 +128,23 @@ export function WineListPage() {
             </span>
           </label>
           <div className="mt-3 flex items-center justify-between desktop:hidden">
-            <Button onClick={() => setIsFilterOpen(true)} size="icon" variant="secondary">
-              <span aria-hidden="true">☷</span>
-              <span className="sr-only">필터</span>
-            </Button>
+            <div className="flex gap-2">
+              <Button aria-label="필터" onClick={openFilters} size="icon" variant="secondary">
+                <span aria-hidden="true">☷</span>
+              </Button>
+              <Button
+                aria-label={filters.likedOnly ? '전체 와인 보기' : '좋아요한 와인만 보기'}
+                aria-pressed={filters.likedOnly}
+                className={filters.likedOnly ? 'text-primary' : ''}
+                onClick={toggleLikedOnly}
+                size="icon"
+                variant="secondary"
+              >
+                <span aria-hidden="true" className="text-xl">
+                  {filters.likedOnly ? '♥' : '♡'}
+                </span>
+              </Button>
+            </div>
             <Button onClick={openWineForm}>와인 등록하기</Button>
           </div>
         </div>
@@ -167,8 +192,19 @@ export function WineListPage() {
         </div>
       </section>
       <Modal isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} title="필터">
-        <WineFilters filters={filters} horizontalTypes onChange={updateFilters} />
-        <Button className="mt-8 w-full" onClick={() => setIsFilterOpen(false)}>
+        <WineFilters
+          filters={draftFilters}
+          horizontalTypes
+          onChange={setDraftFilters}
+          showLikedOnly={false}
+        />
+        <Button
+          className="mt-8 w-full"
+          onClick={() => {
+            updateFilters(draftFilters);
+            setIsFilterOpen(false);
+          }}
+        >
           필터 적용하기
         </Button>
       </Modal>
