@@ -197,15 +197,18 @@ export function WineDetailPage() {
             )}
           </div>
           <aside className="sticky top-16 z-20 order-first -mx-4 self-start border-y border-gray-300 bg-white px-4 py-6 tablet:top-20 tablet:-mx-6 tablet:px-6 desktop:top-28 desktop:order-none desktop:mx-0 desktop:border-0 desktop:bg-transparent desktop:p-0">
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-x-6 desktop:block desktop:bg-gray-100 desktop:p-5">
-              <div className="flex flex-col items-start gap-2 self-start">
-                <Rating size="sm" value={wine.averageRating} />
-                <b className="text-xl">
+            <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start gap-x-6 gap-y-7 tablet:grid-rows-[auto_1fr] tablet:gap-x-12 desktop:grid-cols-1 desktop:grid-rows-none desktop:gap-0 desktop:bg-gray-100 desktop:p-5">
+              <div className="flex flex-col items-start gap-3 self-start">
+                <Rating
+                  className="[&>span]:text-2xl tablet:[&>span]:text-3xl desktop:[&>span]:text-lg"
+                  value={wine.averageRating}
+                />
+                <b className="text-4xl leading-none tablet:text-5xl desktop:text-2xl">
                   {wine.averageRating.toFixed(1)}{' '}
-                  <span className="text-sm font-normal text-gray-600">/ 5.0</span>
+                  <span className="font-normal text-gray-600">/ 5.0</span>
                 </b>
               </div>
-              <div className="space-y-2 desktop:mt-6">
+              <div className="space-y-3 tablet:row-span-2 desktop:row-span-1 desktop:mt-6 desktop:space-y-2">
                 {[5, 4, 3, 2, 1].map((rating) => (
                   <RatingRow
                     count={wine.ratingDistribution[rating - 1] ?? 0}
@@ -216,7 +219,7 @@ export function WineDetailPage() {
                 ))}
               </div>
               <button
-                className="col-span-2 mt-6 w-full rounded-sm bg-primary px-5 py-3 text-sm font-semibold text-gray-100 desktop:mt-6"
+                className="col-span-2 min-h-14 w-full rounded-sm bg-primary px-5 py-3 text-lg font-semibold text-gray-100 tablet:col-span-1 tablet:col-start-1 tablet:row-start-2 desktop:col-auto desktop:row-auto desktop:mt-6 desktop:min-h-12 desktop:text-sm"
                 onClick={openReviewForm}
                 type="button"
               >
@@ -313,12 +316,11 @@ function TasteBar({
 }
 function RatingRow({ count, max, rating }: { count: number; max: number; rating: number }) {
   return (
-    <div className="grid grid-cols-[24px_1fr_20px] items-center gap-2 text-xs">
-      <span>{rating}점</span>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white">
+    <div className="grid grid-cols-[36px_1fr] items-center gap-2 text-base desktop:grid-cols-[28px_1fr] desktop:text-xs">
+      <span className="font-bold">{rating}점</span>
+      <div className="h-3 overflow-hidden rounded-full bg-gray-200 desktop:h-1.5">
         <div className="h-full bg-primary" style={{ width: `${(count / max) * 100}%` }} />
       </div>
-      <span className="text-right text-gray-600">{count}</span>
     </div>
   );
 }
