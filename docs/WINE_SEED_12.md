@@ -28,4 +28,6 @@
 
 `src/assets/wines/seed-12` 이미지는 초기 기능 검증용으로 판매 페이지의 상품 이미지를 로컬에 보관한 것이다. 화면에서는 원본 비율을 유지해 `object-fit: contain`으로 표시한다. 운영 공개 전에는 판매처/제조사의 사용 조건을 확인하고, 허가된 이미지 또는 자체 촬영 이미지로 교체해야 한다.
 
-Supabase Storage를 사용할 때는 `wine-images` 버킷 아래 SQL의 `image_path`와 동일한 `seed/<파일명>.webp` 경로로 업로드한다. 로컬 검증은 `VITE_USE_MOCK_CATALOG=true`, 실제 Supabase 카탈로그 검증은 `false`로 전환한다.
+Supabase Storage를 사용할 때는 `wine-images` 버킷 아래 SQL의 `image_path`와 동일한 `seed/<파일명>.webp` 경로로 업로드한다. 연결된 프로젝트에는 `npm run supabase:upload-seed-images`로 12개 이미지를 같은 경로에 업로드할 수 있다.
+
+앱은 기본적으로 실제 Supabase 카탈로그를 사용한다. 오프라인 UI 검증이 필요할 때만 `VITE_USE_MOCK_CATALOG=true`로 전환하며 테스트 환경은 자동으로 목 카탈로그를 사용한다.

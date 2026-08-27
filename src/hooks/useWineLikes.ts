@@ -9,7 +9,7 @@ export function useWineLikes(userId: string | null) {
     queryKey: wineLikesQueryKey(userId),
     queryFn: () => getLikedWineIds(userId!),
     enabled: Boolean(userId),
-    initialData: [],
+    refetchOnMount: 'always',
   });
 
   const mutation = useMutation({
@@ -20,9 +20,10 @@ export function useWineLikes(userId: string | null) {
     onMutate: async ({ wineId, isLiked }) => {
       await queryClient.cancelQueries({ queryKey: wineLikesQueryKey(userId) });
       const previous = queryClient.getQueryData<string[]>(wineLikesQueryKey(userId)) ?? [];
-      queryClient.setQueryData<string[]>(wineLikesQueryKey(userId), isLiked
-        ? previous.filter((id) => id !== wineId)
-        : [...new Set([...previous, wineId])]);
+      queryClient.setQueryData<string[]>(
+        wineLikesQueryKey(userId),
+        isLiked ? previous.filter((id) => id !== wineId) : [...new Set([...previous, wineId])],
+      );
       return { previous };
     },
     onError: (_error, _variables, context) => {
@@ -31,5 +32,9 @@ export function useWineLikes(userId: string | null) {
     onSettled: () => queryClient.invalidateQueries({ queryKey: wineLikesQueryKey(userId) }),
   });
 
-  return { likedWineIds: query.data, toggleLike: mutation.mutate, isPending: mutation.isPending };
+  return {
+    likedWineIds: query.data ?? [],
+    toggleLike: mutation.mutate,
+    isPending: mutation.isPending,
+  };
 }
