@@ -16,6 +16,8 @@ import { Button, EmptyState, ErrorState, Loading, Modal, Rating } from '../compo
 import { useAuth } from '../features/auth/AuthContext';
 import { ReviewForm } from '../features/wines/ReviewForm';
 import { WineForm } from '../features/wines/WineForm';
+import cameraIcon from '../assets/profile/camera.png';
+import defaultProfile from '../assets/profile/default-profile.png';
 
 export function MyProfilePage() {
   const { user } = useAuth();
@@ -92,17 +94,18 @@ export function MyProfilePage() {
       <aside className="self-start desktop:sticky desktop:top-28">
         <div className="flex flex-col items-center desktop:items-start">
           <label className="group relative block size-32 cursor-pointer overflow-hidden rounded-full bg-gray-100 text-primary shadow-card">
-            {profile?.avatarUrl ? (
-              <img alt="프로필" className="size-full object-cover" src={profile.avatarUrl} />
-            ) : (
-              <span className="grid size-full place-items-center text-4xl font-bold">
-                {profile?.nickname.charAt(0)}
-              </span>
-            )}
-            <span className="absolute inset-0 grid place-items-center bg-primary/0 text-white opacity-0 transition group-focus-within:bg-primary group-focus-within:opacity-100 group-hover:bg-primary group-hover:opacity-100">
-              <svg aria-hidden="true" className="size-12" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 3 7.5 5H5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3h-2.5L15 3H9Zm3 4a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Z" />
-              </svg>
+            <img
+              alt="프로필"
+              className="size-full object-cover"
+              src={profile?.avatarUrl ?? defaultProfile}
+            />
+            <span className="backdrop-blur-0 absolute inset-0 grid place-items-center bg-white/0 opacity-0 transition-all duration-200 group-focus-within:bg-white/75 group-focus-within:opacity-100 group-focus-within:backdrop-blur-[1px] group-hover:bg-white/75 group-hover:opacity-100 group-hover:backdrop-blur-[1px]">
+              <img
+                alt=""
+                aria-hidden="true"
+                className="size-12 scale-90 object-contain transition-transform duration-200 group-focus-within:scale-100 group-hover:scale-100"
+                src={cameraIcon}
+              />
             </span>
             <input
               accept="image/jpeg,image/png,image/webp"

@@ -1,4 +1,5 @@
 import { requireSupabase } from '../lib/supabase';
+import defaultProfile from '../assets/profile/default-profile.png';
 
 export interface ProfileData {
   id: string;
@@ -26,9 +27,9 @@ export async function getProfile(
         nickname: data.nickname,
         avatarUrl: data.avatar_path
           ? client.storage.from('avatars').getPublicUrl(data.avatar_path).data.publicUrl
-          : undefined,
+          : defaultProfile,
       }
-    : { id: userId, nickname: fallbackNickname };
+    : { id: userId, nickname: fallbackNickname, avatarUrl: defaultProfile };
   mockProfiles.set(userId, profile);
   return profile;
 }
@@ -55,7 +56,7 @@ export async function updateProfile(
     nickname,
     avatarUrl: avatarPath
       ? client.storage.from('avatars').getPublicUrl(avatarPath).data.publicUrl
-      : mockProfiles.get(userId)?.avatarUrl,
+      : (mockProfiles.get(userId)?.avatarUrl ?? defaultProfile),
   };
   mockProfiles.set(userId, profile);
   return profile;

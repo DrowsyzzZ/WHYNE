@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import defaultProfile from '../../assets/profile/default-profile.png';
 import { getAromaIcon } from '../../features/wines/aromaIconAssets';
 import { Rating } from '../ui/Rating';
 
@@ -40,13 +41,11 @@ export function ReviewCard({
       <header className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-full bg-gray-100">
-            {review.authorAvatarUrl ? (
-              <img alt="" className="size-full object-cover" src={review.authorAvatarUrl} />
-            ) : (
-              <span aria-hidden="true" className="text-gray-600">
-                ●
-              </span>
-            )}
+            <img
+              alt=""
+              className="size-full object-cover"
+              src={review.authorAvatarUrl ?? defaultProfile}
+            />
           </div>
           <div className="min-w-0">
             <p className="truncate font-semibold">{review.authorNickname}</p>
