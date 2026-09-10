@@ -4,11 +4,11 @@ import { Button } from '../../components';
 import { useAuth } from './AuthContext';
 import googleLogo from '../../assets/auth/google.png';
 
-export function SocialAuthButtons({ mode }: { mode: 'login' | 'signup' }) {
+export function SocialAuthButtons() {
   const { isConfigured, isLoading } = useAuth();
   const [pending, setPending] = useState<SocialProvider | null>(null);
   const [error, setError] = useState('');
-  const suffix = mode === 'login' ? '로그인' : '회원가입';
+  const suffix = '계속하기';
 
   async function signIn(provider: SocialProvider) {
     if (pending) return;

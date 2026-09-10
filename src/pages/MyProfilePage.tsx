@@ -32,10 +32,22 @@ export function MyProfilePage() {
   );
   const userId = user?.id ?? '';
   const fallbackNickname =
-    typeof user?.user_metadata.nickname === 'string' ? user.user_metadata.nickname : '와인러버';
+    typeof user?.user_metadata.nickname === 'string'
+      ? user.user_metadata.nickname
+      : typeof user?.user_metadata.full_name === 'string'
+        ? user.user_metadata.full_name
+        : typeof user?.user_metadata.name === 'string'
+          ? user.user_metadata.name
+          : '와인러버';
+  const fallbackAvatarUrl =
+    typeof user?.user_metadata.avatar_url === 'string'
+      ? user.user_metadata.avatar_url
+      : typeof user?.user_metadata.picture === 'string'
+        ? user.user_metadata.picture
+        : undefined;
   const profileQuery = useQuery({
-    queryKey: ['profile', userId, fallbackNickname],
-    queryFn: () => getProfile(userId, fallbackNickname),
+    queryKey: ['profile', userId, fallbackNickname, fallbackAvatarUrl],
+    queryFn: () => getProfile(userId, fallbackNickname, fallbackAvatarUrl),
     enabled: Boolean(userId),
   });
   const winesQuery = useQuery({
