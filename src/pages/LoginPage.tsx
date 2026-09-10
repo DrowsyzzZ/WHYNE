@@ -84,7 +84,7 @@ export function LoginPage() {
         <span>또는</span>
         <span className="h-px flex-1 bg-gray-300" />
       </div>
-      <SocialAuthButtons mode="login" />
+      <SocialAuthButtons />
       <p className="mt-6 text-center text-sm text-gray-600">
         계정이 아직 없으신가요?{' '}
         <Link className="font-semibold text-primary underline" to="/signup">

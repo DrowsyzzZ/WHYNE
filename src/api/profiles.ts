@@ -11,6 +11,7 @@ const mockProfiles = new Map<string, ProfileData>();
 export async function getProfile(
   userId: string,
   fallbackNickname = '와인러버',
+  fallbackAvatarUrl?: string,
 ): Promise<ProfileData> {
   const existing = mockProfiles.get(userId);
   if (existing) return existing;
@@ -27,9 +28,9 @@ export async function getProfile(
         nickname: data.nickname,
         avatarUrl: data.avatar_path
           ? client.storage.from('avatars').getPublicUrl(data.avatar_path).data.publicUrl
-          : defaultProfile,
+          : (fallbackAvatarUrl ?? defaultProfile),
       }
-    : { id: userId, nickname: fallbackNickname, avatarUrl: defaultProfile };
+    : { id: userId, nickname: fallbackNickname, avatarUrl: fallbackAvatarUrl ?? defaultProfile };
   mockProfiles.set(userId, profile);
   return profile;
 }
