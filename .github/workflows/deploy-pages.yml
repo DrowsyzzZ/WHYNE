@@ -27,7 +27,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: corepack pnpm install --frozen-lockfile
 
       - name: Build
         env:
