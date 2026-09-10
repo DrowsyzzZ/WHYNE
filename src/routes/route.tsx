@@ -7,6 +7,7 @@ import { WineListPage } from '../pages/WineListPage';
 import { WineDetailPage } from '../pages/WineDetailPage';
 import { MyProfilePage } from '../pages/MyProfilePage';
 import { RequireAuth } from './RequireAuth';
+import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 
 // Route components intentionally live here so authentication pages stay code-split.
 // eslint-disable-next-line react-refresh/only-export-components
@@ -40,6 +41,7 @@ export const router = createBrowserRouter(
       children: [
         { path: 'login', element: <LoginPage /> },
         { path: 'signup', element: <SignupPage /> },
+        { path: 'auth/callback', element: <AuthCallbackPage /> },
       ],
     },
   ],

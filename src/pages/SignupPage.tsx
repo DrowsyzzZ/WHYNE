@@ -15,8 +15,9 @@ export function SignupPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields, touchedFields },
   } = useForm<SignupValues>({
+    mode: 'onChange',
     resolver: zodResolver(signupSchema),
     defaultValues: { email: '', nickname: '', password: '', passwordConfirm: '' },
   });
@@ -67,7 +68,12 @@ export function SignupPage() {
           label="비밀번호"
           placeholder="비밀번호를 입력해주세요"
           type="password"
-          {...register('password')}
+          {...register('password', {
+            deps:
+              dirtyFields.passwordConfirm || touchedFields.passwordConfirm
+                ? ['passwordConfirm']
+                : [],
+          })}
         />
         <Input
           autoComplete="new-password"

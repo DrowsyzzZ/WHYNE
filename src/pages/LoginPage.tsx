@@ -19,6 +19,7 @@ export function LoginPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
+    mode: 'onChange',
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
