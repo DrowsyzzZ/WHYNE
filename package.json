@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "supabase:upload-seed-images": "supabase storage cp --experimental --linked --recursive --cache-control max-age=31536000 src/assets/wines/seed-12 ss:///wine-images/seed"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -27,6 +28,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/eslint-plugin-query": "^5.102.2",
     "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
@@ -38,6 +40,7 @@
     "globals": "^17.11.0",
     "jsdom": "^30.0.1",
     "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "supabase": "^2.115.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",

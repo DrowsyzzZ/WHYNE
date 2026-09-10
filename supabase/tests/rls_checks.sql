@@ -57,8 +57,15 @@ delete from public.wines where id = '10000000-0000-0000-0000-000000000099';
 
 do $$
 declare recommendation_count integer;
+declare first_wine uuid;
+declare unrated_average numeric;
 begin
   select count(*) into recommendation_count from public.get_recommended_wines(100);
   if recommendation_count > 10 then raise exception 'recommendation limit failed'; end if;
+  select wine_id into first_wine from public.get_recommended_wines(10) limit 1;
+  if first_wine <> '10000000-0000-0000-0000-000000000001' then raise exception 'recommendation rating order failed'; end if;
+  select average_rating into unrated_average from public.get_recommended_wines(10)
+  where wine_id = '10000000-0000-0000-0000-000000000004';
+  if unrated_average <> 0 then raise exception 'unrated wine average must be zero'; end if;
 end $$;
 rollback;

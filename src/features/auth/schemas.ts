@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
-const email = z.string().min(1, '이메일은 필수 입력입니다.').email('이메일 형식으로 작성해 주세요.');
+const email = z
+  .string()
+  .min(1, '이메일은 필수 입력입니다.')
+  .email('이메일 형식으로 작성해 주세요.');
 
 export const loginSchema = z.object({
   email,
@@ -18,7 +21,10 @@ export const signupSchema = z
       .string()
       .min(1, '비밀번호는 필수 입력입니다.')
       .min(8, '비밀번호는 최소 8자 이상입니다.')
-      .regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])/, '비밀번호는 숫자, 영문, 특수문자로만 가능합니다.'),
+      .regex(
+        /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])/,
+        '영문, 숫자, 특수문자(!@#$%^&*)를 각각 포함해주세요.',
+      ),
     passwordConfirm: z.string().min(1, '비밀번호 확인을 입력해주세요.'),
   })
   .refine((values) => values.password === values.passwordConfirm, {

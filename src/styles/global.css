@@ -16,8 +16,8 @@
   --color-primary-hover: #5932c7;
   --color-error: #e5484d;
 
-  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 12px;
@@ -28,8 +28,73 @@
   --shadow-modal: 0 18px 48px rgb(26 25 24 / 18%);
 }
 
+.dual-range-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 1.5rem;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.dual-range-input::-webkit-slider-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  appearance: none;
+  border: 1px solid #cfd0d4;
+  border-radius: 9999px;
+  background: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.dual-range-input::-moz-range-thumb {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid #cfd0d4;
+  border-radius: 9999px;
+  background: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.recommendation-scroll {
+  scrollbar-color: #6a42db #e9e7ed;
+  scrollbar-width: thin;
+}
+
+.recommendation-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recommendation-scroll::-webkit-scrollbar-track {
+  border-radius: 9999px;
+  background: #e9e7ed;
+}
+
+.recommendation-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: #6a42db;
+}
+
+@media (min-width: 48rem) {
+  .recommendation-scroll {
+    scrollbar-width: none;
+  }
+
+  .recommendation-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 :root {
-  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  font-family:
+    'Pretendard Variable',
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
     sans-serif;
   color: #1a1918;
   background: #fafafa;
@@ -42,8 +107,46 @@
 }
 
 *:focus-visible {
-  outline: 3px solid rgb(106 66 219 / 45%);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.whyne-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.social-google {
+  border-color: #747775;
+  color: #1f1f1f;
+}
+
+.social-auth-button {
+  position: relative;
+  height: 48px;
+  border: 1px solid #747775;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.social-auth-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+}
+
+.social-kakao,
+.social-kakao:hover {
+  border-color: #747775;
+  background-color: #fee500;
+  color: #000;
 }
 
 html {
@@ -77,15 +180,15 @@ select {
 }
 
 @utility container-whyne {
-  width: min(100% - 32px, 1200px);
+  width: 100%;
   margin-inline: auto;
 
   @media (min-width: 48rem) {
-    width: min(100% - 48px, 1200px);
+    width: min(100% - 40px, 1140px);
   }
 
   @media (min-width: 75rem) {
-    width: min(100% - 80px, 1200px);
+    width: 1140px;
   }
 }
 
@@ -96,7 +199,5 @@ select {
 
 @utility landing-preview-card {
   border-radius: 40px 0 40px 0;
-  background:
-    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 85%), transparent 40%),
-    #f3f3f3;
+  background: radial-gradient(circle at 30% 20%, rgb(255 255 255 / 85%), transparent 40%), #f3f3f3;
 }
