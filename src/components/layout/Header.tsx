@@ -54,8 +54,8 @@ export function Header() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 bg-black text-white">
-      <div className="container-whyne flex min-h-16 items-center justify-between gap-5 px-5 tablet:min-h-20 tablet:px-6">
+    <header className="fixed inset-x-0 top-0 z-40 bg-[#171A21] text-white">
+      <div className="container-whyne flex min-h-12.5 items-center justify-between gap-5 px-5 tablet:min-h-17.5 tablet:px-15">
         <Link aria-label="WHYNE 홈" className="inline-flex items-center" to="/">
           <Logo />
         </Link>
@@ -66,23 +66,23 @@ export function Header() {
                 aria-expanded={isProfileMenuOpen}
                 aria-haspopup="menu"
                 aria-label="프로필 메뉴"
-                className="grid size-10 place-items-center overflow-hidden rounded-full bg-primary text-sm font-bold text-gray-100 ring-1 ring-white/50 transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="grid size-5 place-items-center overflow-hidden rounded-full bg-primary font-bold text-gray-100 ring-1 ring-white/50 transition-opacity hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-white tablet:size-11.25"
                 onClick={() => setIsProfileMenuOpen((isOpen) => !isOpen)}
                 type="button"
               >
                 {avatarUrl ? (
                   <img alt="" className="size-full object-cover" src={avatarUrl} />
                 ) : (
-                  profileInitial
+                  <span className="text-[10px] tablet:text-base">{profileInitial}</span>
                 )}
               </button>
               {isProfileMenuOpen && (
                 <div
-                  className="absolute top-[calc(100%+0.75rem)] right-0 min-w-32 overflow-hidden rounded-md border border-gray-200 bg-white py-1 text-black shadow-card"
+                  className="absolute top-[calc(100%+5px)] right-0 flex min-w-25.25 flex-col items-center overflow-hidden rounded border border-gray-300 bg-white text-center text-sm leading-6 text-[#2d3034] shadow-card tablet:right-1/2 tablet:min-w-32 tablet:translate-x-1/2 tablet:text-base tablet:leading-6.5"
                   role="menu"
                 >
                   <Link
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    className="mx-1 my-0.75 block rounded px-4 py-2 tracking-tight hover:bg-[#f2f2f2] tablet:w-30 tablet:py-2.5"
                     onClick={() => setIsProfileMenuOpen(false)}
                     role="menuitem"
                     to="/myprofile"
@@ -90,7 +90,7 @@ export function Header() {
                     마이페이지
                   </Link>
                   <button
-                    className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="mx-1 my-0.75 block w-[90.75px] rounded px-4 py-2 hover:bg-[#f2f2f2] disabled:cursor-not-allowed disabled:opacity-70 tablet:w-30"
                     disabled={isSigningOut}
                     onClick={() => void handleSignOut()}
                     role="menuitem"
@@ -102,7 +102,10 @@ export function Header() {
               )}
             </div>
           ) : (
-            <Link className="inline-flex items-center justify-center text-sm" to="/login">
+            <Link
+              className="inline-flex items-center justify-center text-sm tablet:text-base"
+              to="/login"
+            >
               로그인
             </Link>
           )}

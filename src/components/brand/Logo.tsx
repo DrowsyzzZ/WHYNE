@@ -4,7 +4,10 @@ import { cn } from '../../lib/cn';
 export function Logo({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn('inline-block text-xl font-extrabold tracking-[-0.06em]', className)}
+      className={cn(
+        'inline-block text-xl leading-none  font-extrabold tracking-[-0.06em]',
+        className,
+      )}
       {...props}
     >
       WHYNE
