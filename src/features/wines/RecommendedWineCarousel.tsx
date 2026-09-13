@@ -4,9 +4,11 @@ import type { WineListItem } from '../../api/wines';
 interface RecommendedWineCarouselProps {
   wines: WineListItem[];
   onOpen: (id: string) => void;
+  likedWineIds?: Set<string>;
+  onToggleLike?: (id: string) => void;
 }
 
-export function RecommendedWineCarousel({ wines, onOpen }: RecommendedWineCarouselProps) {
+export function RecommendedWineCarousel({ wines, onOpen, likedWineIds = new Set(), onToggleLike }: RecommendedWineCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ pointerX: 0, scrollLeft: 0 });
   const draggedRef = useRef(false);
@@ -80,7 +82,7 @@ export function RecommendedWineCarousel({ wines, onOpen }: RecommendedWineCarous
     <div className="relative mt-8" onBlur={() => setIsPaused(false)} onFocus={() => setIsPaused(true)} onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
       <button aria-label="이전 추천 와인" className="absolute -left-5 top-1/2 z-10 hidden size-11 -translate-y-1/2 place-items-center rounded-full border border-gray-300 bg-white text-2xl shadow-card disabled:invisible tablet:grid" disabled={!hasOverflow} onClick={() => scroll(-1)} type="button">‹</button>
       <div className="recommendation-scroll flex cursor-grab snap-x snap-mandatory gap-5 overflow-x-auto pb-4 active:cursor-grabbing tablet:gap-8 tablet:pb-0" onPointerCancel={() => { updateControls(); setIsPaused(false); }} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={() => { updateControls(); setIsPaused(false); }} onScroll={updateControls} ref={scrollRef}>
-        {loopWines.map((wine, index) => { const isDuplicate = index >= wines.length; return <button aria-hidden={isDuplicate || undefined} className="shrink-0 basis-[76%] snap-start text-center tablet:basis-[calc((100%-4rem)/3)] desktop:basis-[calc((100%-6rem)/4)]" key={`${wine.id}-${isDuplicate ? 'duplicate' : 'original'}`} onClick={() => { if (!draggedRef.current) onOpen(wine.id); draggedRef.current = false; }} tabIndex={isDuplicate ? -1 : 0} type="button"><img alt="" className="mx-auto h-36 w-full object-contain tablet:h-48" draggable={false} src={wine.imageUrl} /><b className="mt-3 block text-sm">{wine.name}</b><span className="mt-2 block text-xs text-gray-600">{wine.region}</span></button>; })}
+        {loopWines.map((wine, index) => { const isDuplicate = index >= wines.length; const isLiked = likedWineIds.has(wine.id); return <article aria-hidden={isDuplicate || undefined} className="relative shrink-0 basis-[76%] snap-start text-center tablet:basis-[calc((100%-4rem)/3)] desktop:basis-[calc((100%-6rem)/4)]" key={`${wine.id}-${isDuplicate ? 'duplicate' : 'original'}`}><button className="w-full" onClick={() => { if (!draggedRef.current) onOpen(wine.id); draggedRef.current = false; }} tabIndex={isDuplicate ? -1 : 0} type="button"><img alt="" className="mx-auto h-36 w-full object-contain tablet:h-48" draggable={false} src={wine.imageUrl} /><b className="mt-3 block text-sm">{wine.name}</b><span className="mt-2 block text-xs text-gray-600">{wine.region}</span></button>{onToggleLike && <button aria-label={isLiked ? `${wine.name} 좋아요 취소` : `${wine.name} 좋아요`} aria-pressed={isLiked} className="absolute right-2 top-2 grid size-10 place-items-center rounded-full bg-white/90 text-2xl shadow-card" onClick={(event) => { event.stopPropagation(); onToggleLike(wine.id); }} tabIndex={isDuplicate ? -1 : 0} type="button"><span aria-hidden="true" className={isLiked ? 'text-primary' : 'text-gray-600'}>{isLiked ? '♥' : '♡'}</span></button>}</article>; })}
       </div>
       <button aria-label="다음 추천 와인" className="absolute -right-5 top-1/2 z-10 hidden size-11 -translate-y-1/2 place-items-center rounded-full border border-gray-300 bg-white text-2xl shadow-card disabled:invisible tablet:grid" disabled={!hasOverflow} onClick={() => scroll(1)} type="button">›</button>
     </div>

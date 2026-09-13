@@ -12,6 +12,7 @@ export interface WineFilters {
   maxPrice: number;
   ratingMin: number | null;
   ratingMax: number | null;
+  likedOnly: boolean;
 }
 
 export interface WineListItem {
@@ -28,6 +29,7 @@ export interface WineListItem {
 
 const seedImages = [wine1, wine2, wine3, wine4];
 const USE_MOCK_CATALOG = true;
+const mockLikesByUser = new Map<string, Set<string>>();
 
 const mockTemplates: Array<Pick<WineListItem, 'name' | 'region' | 'price' | 'type'>> = [
   { name: 'Sentinel Cabernet Sauvignon', region: 'Western Cape, South Africa', price: 74000, type: 'red' },
@@ -109,6 +111,33 @@ export async function getRecommendedWines(resultLimit = 10): Promise<WineListIte
       latestReview: latestReviewByWine.get(wine.id) ?? null,
     }];
   });
+}
+
+export async function getLikedWineIds(userId: string): Promise<string[]> {
+  if (USE_MOCK_CATALOG) return [...(mockLikesByUser.get(userId) ?? [])];
+  const { data, error } = await requireSupabase().from('wine_likes').select('wine_id').eq('user_id', userId);
+  if (error) throw error;
+  return (data ?? []).map((like) => like.wine_id);
+}
+
+export async function likeWine(userId: string, wineId: string) {
+  if (USE_MOCK_CATALOG) {
+    const likes = mockLikesByUser.get(userId) ?? new Set<string>();
+    likes.add(wineId);
+    mockLikesByUser.set(userId, likes);
+    return;
+  }
+  const { error } = await requireSupabase().from('wine_likes').insert({ user_id: userId, wine_id: wineId });
+  if (error && error.code !== '23505') throw error;
+}
+
+export async function unlikeWine(userId: string, wineId: string) {
+  if (USE_MOCK_CATALOG) {
+    mockLikesByUser.get(userId)?.delete(wineId);
+    return;
+  }
+  const { error } = await requireSupabase().from('wine_likes').delete().eq('user_id', userId).eq('wine_id', wineId);
+  if (error) throw error;
 }
 
 function resolveWineImage(path: string, index: number) {
