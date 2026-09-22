@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type PointerEvent } from 'react';
 import type { ReviewInput, WineReview, WineDetail } from '../../api/wines';
 import { Button } from '../../components';
 import { aromaOptions } from './aromaAssets';
@@ -8,6 +8,8 @@ const tasteFields = [
   ['당도', 'drySweet', '드라이해요', '달아요'],
   ['산미', 'softAcidic', '부드러워요', '많이셔요'],
 ] as const;
+
+type TasteKey = (typeof tasteFields)[number][1];
 
 const emptyReview: ReviewInput = {
   rating: 5,
@@ -41,6 +43,37 @@ export function ReviewForm({
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const scoreFromPointer = (event: PointerEvent<HTMLDivElement>) => {
+    const { left, width } = event.currentTarget.getBoundingClientRect();
+    return Math.min(5, Math.max(1, Math.ceil(((event.clientX - left) / width) * 5)));
+  };
+  const setRatingFromPointer = (event: PointerEvent<HTMLDivElement>) => {
+    const rating = scoreFromPointer(event);
+    setValues((current) => ({ ...current, rating }));
+  };
+  const setTasteFromPointer = (event: PointerEvent<HTMLDivElement>, key: TasteKey) => {
+    const score = scoreFromPointer(event);
+    setValues((current) => ({ ...current, [key]: score }));
+  };
+  const startPointerSelection = (
+    event: PointerEvent<HTMLDivElement>,
+    updateScore: (pointerEvent: PointerEvent<HTMLDivElement>) => void,
+  ) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    updateScore(event);
+  };
+  const continuePointerSelection = (
+    event: PointerEvent<HTMLDivElement>,
+    updateScore: (pointerEvent: PointerEvent<HTMLDivElement>) => void,
+  ) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) updateScore(event);
+  };
+  const endPointerSelection = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!values.content.trim()) {
@@ -63,7 +96,7 @@ export function ReviewForm({
   };
 
   return (
-    <form className="space-y-7" onSubmit={(event) => void handleSubmit(event)}>
+    <form className="space-y-6" onSubmit={(event) => void handleSubmit(event)}>
       <div className="flex items-center gap-4 border-b border-gray-300 pb-5">
         <div className="grid size-20 shrink-0 place-items-center bg-gray-100 p-2">
           <img
@@ -78,19 +111,35 @@ export function ReviewForm({
         </div>
       </div>
       <fieldset>
-        <legend className="font-semibold">별점</legend>
-        <div className="mt-3 flex gap-1">
-          {[1, 2, 3, 4, 5].map((rating) => (
-            <button
-              aria-label={`${rating}점`}
-              className={`text-3xl ${rating <= values.rating ? 'text-primary' : 'text-gray-300'}`}
-              key={rating}
-              onClick={() => setValues({ ...values, rating })}
-              type="button"
-            >
-              ★
-            </button>
-          ))}
+        <legend className="sr-only">별점 선택</legend>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600">별점 선택</span>
+          <div
+            className="flex cursor-pointer touch-none select-none gap-1"
+            onPointerCancel={endPointerSelection}
+            onPointerDown={(event) => startPointerSelection(event, setRatingFromPointer)}
+            onPointerMove={(event) => continuePointerSelection(event, setRatingFromPointer)}
+            onPointerUp={endPointerSelection}
+          >
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <button
+                aria-label={`${rating}점`}
+                className={`grid size-9 place-items-center ${rating <= values.rating ? 'text-primary' : 'text-gray-300'}`}
+                key={rating}
+                onClick={() => setValues({ ...values, rating })}
+                type="button"
+              >
+                <svg aria-hidden="true" className="size-9" fill="currentColor" viewBox="0 0 24 24">
+                  <path
+                    d="m12 2.8 2.75 5.58 6.16.9-4.46 4.35 1.05 6.14L12 16.87l-5.5 2.9 1.05-6.14L3.1 9.28l6.16-.9L12 2.8Z"
+                    stroke="currentColor"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              </button>
+            ))}
+          </div>
         </div>
       </fieldset>
       <label className="block">
@@ -107,16 +156,30 @@ export function ReviewForm({
         </span>
       </label>
       <fieldset>
-        <legend className="font-semibold">와인 맛 평가</legend>
-        <div className="mt-4 space-y-4">
+        <legend className="font-semibold">와인의 맛은 어땠나요?</legend>
+        <div className="mt-3 space-y-4">
           {tasteFields.map(([label, key, low, high]) => (
             <div
               className="grid grid-cols-[52px_72px_1fr_72px] items-center gap-3 text-sm"
               key={key}
             >
-              <span>{label}</span>
+              <span className="flex self-stretch items-center border-r border-gray-300 pr-3">
+                {label}
+              </span>
               <span className="text-xs text-gray-600">{low}</span>
-              <div className="grid grid-cols-5 gap-1" role="radiogroup" aria-label={label}>
+              <div
+                aria-label={label}
+                className="grid cursor-pointer touch-none select-none grid-cols-5 gap-1"
+                onPointerCancel={endPointerSelection}
+                onPointerDown={(event) =>
+                  startPointerSelection(event, (pointerEvent) => setTasteFromPointer(pointerEvent, key))
+                }
+                onPointerMove={(event) =>
+                  continuePointerSelection(event, (pointerEvent) => setTasteFromPointer(pointerEvent, key))
+                }
+                onPointerUp={endPointerSelection}
+                role="radiogroup"
+              >
                 {[1, 2, 3, 4, 5].map((score) => (
                   <button
                     aria-checked={values[key] === score}
@@ -135,7 +198,7 @@ export function ReviewForm({
         </div>
       </fieldset>
       <fieldset>
-        <legend className="font-semibold">향</legend>
+        <legend className="font-semibold">기억에 남는 향이 있나요?</legend>
         <div className="mt-3 flex flex-wrap gap-2">
           {aromaOptions.map((aroma) => {
             const selected = values.aromas.includes(aroma);

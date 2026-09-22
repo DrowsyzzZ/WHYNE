@@ -17,7 +17,7 @@ import { useAuth } from '../features/auth/AuthContext';
 import { ReviewForm } from '../features/wines/ReviewForm';
 import { WineForm } from '../features/wines/WineForm';
 import cameraIcon from '../assets/profile/camera.png';
-import defaultProfile from '../assets/profile/default-profile.png';
+import defaultProfile from '../assets/profile/default-profile.svg';
 
 export function MyProfilePage() {
   const { user } = useAuth();

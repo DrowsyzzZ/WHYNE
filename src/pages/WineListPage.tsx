@@ -15,7 +15,7 @@ const initialFilters: WineFilterValues = {
   search: '',
   types: [],
   minPrice: 0,
-  maxPrice: 500000,
+  maxPrice: Infinity,
   ratingMin: null,
   ratingMax: null,
   likedOnly: false,
@@ -28,7 +28,8 @@ const hasActiveFilters = (filters: WineFilterValues) =>
   filters.minPrice !== initialFilters.minPrice ||
   filters.maxPrice !== initialFilters.maxPrice ||
   filters.ratingMin !== null ||
-  filters.ratingMax !== null;
+  filters.ratingMax !== null ||
+  filters.likedOnly;
 
 export function WineListPage() {
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ export function WineListPage() {
   const { data: recommendedWines = [] } = useRecommendedWines(10);
   const { likedWineIds, toggleLike } = useWineLikes(user?.id ?? null);
   const likedWineIdSet = new Set(likedWineIds);
+  const hasResettableFilters = hasActiveFilters({ ...filters, likedOnly: false });
   const filteredWines = filters.likedOnly
     ? data.filter((wine) => likedWineIdSet.has(wine.id))
     : data;
@@ -117,45 +119,32 @@ export function WineListPage() {
 
   return (
     <main className="bg-white pb-24">
-      <section className="bg-gray-100 py-10 tablet:py-14">
-        <div className="container-whyne">
-          <h1 className="text-xl font-bold tablet:text-2xl">이번 달 추천 와인</h1>
-          <RecommendedWineCarousel
-            onOpen={(id) => void navigate(`/wines/${id}`)}
-            wines={recommendedWines}
-          />
+      <section className="bg-gray-100 py-8 tablet:py-14">
+        <div className="container-whyne px-4 tablet:px-0">
+          <h1 className="text-xl font-bold tablet:pl-1 tablet:text-2xl desktop:pl-0">이번 달 추천 와인</h1>
+          <RecommendedWineCarousel wines={recommendedWines} />
         </div>
       </section>
-      <section className="container-whyne pt-10 tablet:pt-14">
-        <div className="sticky top-16 z-30 -mx-4 bg-white px-4 py-3 tablet:-mx-6 tablet:px-6 desktop:static desktop:mx-0 desktop:p-0">
+      <section className="container-whyne px-4 pt-8 tablet:px-0 tablet:pt-14">
+        <div className="sticky top-12.5 z-30 -mx-4 bg-white px-4 py-2 tablet:top-17.5 tablet:-mx-6 tablet:px-6 tablet:py-3 desktop:static desktop:mx-0 desktop:p-0">
           <label className="relative block desktop:ml-auto desktop:w-[calc(100%-310px)]">
             <span className="sr-only">와인 검색</span>
             <input
-              className="min-h-14 w-full rounded-sm border border-gray-300 bg-white px-14 text-base placeholder:text-gray-600 focus:border-primary"
+              className="min-h-12 w-full rounded-sm border border-gray-300 bg-white px-14 text-base placeholder:text-gray-600 focus:border-primary tablet:min-h-14"
               onChange={(event) => applyStandardFilters({ ...filters, search: event.target.value })}
               placeholder="와인을 검색해 보세요"
               type="search"
               value={filters.search}
             />
-            <span aria-hidden="true" className="absolute top-1/2 left-5 -translate-y-1/2 text-xl">
+            <span aria-hidden="true" className="absolute inset-y-0 left-5 flex items-center text-xl leading-none">
               ⌕
             </span>
           </label>
-          <div className="mt-3 flex items-center justify-between desktop:hidden">
+          <div className="mt-2 flex items-center justify-between tablet:mt-3 desktop:hidden">
             <div className="flex gap-2">
               <Button aria-label="필터" onClick={openFilters} size="icon" variant="secondary">
                 <span aria-hidden="true">☷</span>
               </Button>
-              {hasActiveFilters(filters) && (
-                <Button
-                  aria-label="필터 초기화"
-                  onClick={() => updateFilters(initialFilters)}
-                  size="sm"
-                  variant="ghost"
-                >
-                  초기화
-                </Button>
-              )}
               <Button
                 aria-label={filters.likedOnly ? '전체 와인 보기' : '좋아요한 와인만 보기'}
                 aria-pressed={filters.likedOnly}
@@ -168,6 +157,29 @@ export function WineListPage() {
                   {filters.likedOnly ? '♥' : '♡'}
                 </span>
               </Button>
+              {hasResettableFilters && (
+                <Button
+                  aria-label="필터 초기화"
+                  onClick={() => updateFilters(initialFilters)}
+                  size="icon"
+                  variant="secondary"
+                >
+                  <svg
+                    aria-hidden="true"
+                    fill="none"
+                    height="20"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                    width="20"
+                  >
+                    <path d="M3 12a9 9 0 1 0 3-6.7" />
+                    <path d="M3 4v5h5" />
+                  </svg>
+                </Button>
+              )}
             </div>
             <Button onClick={openWineForm}>와인 등록하기</Button>
           </div>
@@ -176,14 +188,18 @@ export function WineListPage() {
           <div className="hidden self-start desktop:sticky desktop:top-24 desktop:block">
             <WineFilters
               filters={filters}
-              onChange={applyStandardFilters}
-              onReset={hasActiveFilters(filters) ? () => updateFilters(initialFilters) : undefined}
+              onChange={updateFilters}
+              onReset={hasResettableFilters ? () => updateFilters(initialFilters) : undefined}
             />
-            <Button className="mt-10 w-full" onClick={openWineForm}>
+            <Button className="mt-6 w-full" onClick={openWineForm}>
               와인 등록하기
             </Button>
           </div>
-          <section aria-busy={isFetching} aria-label="와인 검색 결과">
+          <section
+            aria-busy={isFetching}
+            aria-label="와인 검색 결과"
+            className="min-h-[65dvh] desktop:min-h-[720px]"
+          >
             {isLoading ? (
               <Loading label="와인 목록을 불러오는 중" />
             ) : error ? (

@@ -44,25 +44,6 @@ export function SocialAuthButtons() {
           Google로 {suffix}
         </span>
       </Button>
-      <Button
-        disabled={!isConfigured || isLoading || pending !== null}
-        isLoading={pending === 'kakao'}
-        className="social-auth-button social-kakao w-full"
-        variant="secondary"
-        onClick={() => void signIn('kakao')}
-      >
-        <span>
-          <svg
-            className="social-auth-icon"
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M12 3C5.925 3 1 6.824 1 11.54c0 3.05 2.06 5.725 5.156 7.235l-1.047 3.83c-.093.338.293.608.59.412l4.59-3.045c.561.068 1.131.108 1.711.108 6.075 0 11-3.824 11-8.54S18.075 3 12 3Z" />
-          </svg>
-          카카오로 {suffix}
-        </span>
-      </Button>
       {error && (
         <p className="text-sm text-error" role="alert">
           {error}

@@ -13,6 +13,50 @@ interface ModalProps {
 
 const sizeClasses = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl' };
 
+let scrollLockCount = 0;
+let scrollLockState:
+  | {
+      bodyOverflow: string;
+      bodyPosition: string;
+      bodyTop: string;
+      bodyWidth: string;
+      htmlOverflow: string;
+      scrollY: number;
+    }
+  | undefined;
+
+function lockPageScroll() {
+  if (scrollLockCount === 0) {
+    scrollLockState = {
+      bodyOverflow: document.body.style.overflow,
+      bodyPosition: document.body.style.position,
+      bodyTop: document.body.style.top,
+      bodyWidth: document.body.style.width,
+      htmlOverflow: document.documentElement.style.overflow,
+      scrollY: window.scrollY,
+    };
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollLockState.scrollY}px`;
+    document.body.style.width = '100%';
+  }
+  scrollLockCount += 1;
+}
+
+function unlockPageScroll() {
+  scrollLockCount = Math.max(0, scrollLockCount - 1);
+  if (scrollLockCount !== 0 || !scrollLockState) return;
+  const state = scrollLockState;
+  document.documentElement.style.overflow = state.htmlOverflow;
+  document.body.style.overflow = state.bodyOverflow;
+  document.body.style.position = state.bodyPosition;
+  document.body.style.top = state.bodyTop;
+  document.body.style.width = state.bodyWidth;
+  window.scrollTo(0, state.scrollY);
+  scrollLockState = undefined;
+}
+
 export function Modal({
   children,
   description,
@@ -28,8 +72,7 @@ export function Modal({
   useEffect(() => {
     if (!isOpen) return;
     const previousActiveElement = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockPageScroll();
 
     const panel = panelRef.current;
     const focusable = panel?.querySelectorAll<HTMLElement>(
@@ -54,7 +97,7 @@ export function Modal({
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow;
+      unlockPageScroll();
       previousActiveElement?.focus();
     };
   }, [isOpen, onClose]);
@@ -63,7 +106,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid items-end bg-black/55 p-0 sm:place-items-center sm:p-6"
+      className="fixed inset-0 z-50 grid items-end bg-black/55 p-4 sm:place-items-center sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -73,7 +116,7 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={`max-h-[92dvh] w-full overflow-y-auto rounded-t-xl bg-white p-6 shadow-modal sm:rounded-lg sm:p-8 ${sizeClasses[size]}`}
+        className={`modal-scroll max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-xl bg-white p-6 shadow-modal sm:max-h-[92dvh] sm:rounded-lg sm:p-8 ${sizeClasses[size]}`}
         role="dialog"
       >
         <header className="mb-6 flex items-start justify-between gap-4">
@@ -87,7 +130,13 @@ export function Modal({
               </p>
             )}
           </div>
-          <Button aria-label="모달 닫기" onClick={onClose} size="icon" variant="ghost">
+          <Button
+            aria-label="모달 닫기"
+            className="relative -top-1 translate-x-1"
+            onClick={onClose}
+            size="icon"
+            variant="ghost"
+          >
             <span aria-hidden="true" className="text-2xl leading-none">
               ×
             </span>

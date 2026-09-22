@@ -14,13 +14,17 @@ export function Header() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const nickname =
     typeof user?.user_metadata.nickname === 'string' ? user.user_metadata.nickname : null;
+  const metadataAvatar =
+    typeof user?.user_metadata.avatar_url === 'string'
+      ? user.user_metadata.avatar_url
+      : typeof user?.user_metadata.picture === 'string'
+        ? user.user_metadata.picture
+        : undefined;
   const profileQuery = useQuery({
-    queryKey: ['profile', user?.id, nickname],
-    queryFn: () => getProfile(user!.id, nickname ?? '와인러버'),
+    queryKey: ['profile', user?.id, nickname, metadataAvatar],
+    queryFn: () => getProfile(user!.id, nickname ?? '와인러버', metadataAvatar),
     enabled: Boolean(user),
   });
-  const metadataAvatar =
-    typeof user?.user_metadata.avatar_url === 'string' ? user.user_metadata.avatar_url : null;
   const avatarUrl = profileQuery.data?.avatarUrl ?? metadataAvatar;
   const profileInitial = (profileQuery.data?.nickname || nickname || user?.email || 'U')
     .trim()

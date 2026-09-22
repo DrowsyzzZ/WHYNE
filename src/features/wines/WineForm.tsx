@@ -96,6 +96,7 @@ export function WineForm({
         value={name}
       />
       <Input
+        className="hide-number-spin"
         inputMode="numeric"
         label="가격"
         min="0"
@@ -110,7 +111,7 @@ export function WineForm({
           {wineTypes.map((option) => (
             <button
               aria-pressed={type === option.type}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 ${type === option.type ? 'border-primary bg-primary text-gray-100' : 'border-gray-300 bg-white'}`}
+              className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 ${type === option.type ? 'border-primary bg-primary text-gray-100' : 'border-gray-300 bg-white'}`}
               key={option.type}
               onClick={() => setType(option.type)}
               type="button"

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import defaultProfile from '../../assets/profile/default-profile.png';
+import defaultProfile from '../../assets/profile/default-profile.svg';
 import { getAromaIcon } from '../../features/wines/aromaIconAssets';
 import { Rating } from '../ui/Rating';
 
@@ -59,30 +59,35 @@ export function ReviewCard({
             <button
               aria-expanded={isMenuOpen}
               aria-label="리뷰 작업 메뉴"
-              className="grid size-10 place-items-center rounded-full text-xl text-gray-600 hover:bg-gray-100"
+              className="grid size-10 cursor-pointer place-items-center rounded-full text-xl text-gray-600 transition-colors hover:bg-gray-100"
               onClick={() => setIsMenuOpen((open) => !open)}
               type="button"
             >
               <span aria-hidden="true">⋮</span>
             </button>
             {isMenuOpen && (
-              <div className="absolute top-10 right-0 z-10 w-28 overflow-hidden rounded-md border border-gray-300 bg-white py-1 shadow-modal">
+              <div
+                className="absolute top-[calc(100%+4px)] right-0 z-10 flex w-28 flex-col items-center overflow-hidden rounded border border-gray-300 bg-white py-1 text-center text-sm text-[#2d3034] shadow-card"
+                role="menu"
+              >
                 <button
-                  className="min-h-10 w-full px-4 text-left text-sm hover:bg-gray-100"
+                  className="mx-1 my-0.75 min-h-9 w-[calc(100%-8px)] cursor-pointer rounded px-3 py-2 text-center transition-colors hover:bg-[#f2f2f2]"
                   onClick={() => {
                     setIsMenuOpen(false);
                     onEdit?.();
                   }}
+                  role="menuitem"
                   type="button"
                 >
                   수정하기
                 </button>
                 <button
-                  className="min-h-10 w-full px-4 text-left text-sm hover:bg-gray-100"
+                  className="mx-1 my-0.75 min-h-9 w-[calc(100%-8px)] cursor-pointer rounded px-3 py-2 text-center transition-colors hover:bg-[#f2f2f2]"
                   onClick={() => {
                     setIsMenuOpen(false);
                     onDelete?.();
                   }}
+                  role="menuitem"
                   type="button"
                 >
                   삭제하기
@@ -139,13 +144,13 @@ export function ReviewCard({
           <button
             aria-label={review.isLiked ? '리뷰 좋아요 취소' : '리뷰 좋아요'}
             aria-pressed={review.isLiked}
-            className={`inline-flex min-h-10 items-center gap-2 rounded-md border px-3 transition-colors ${review.isLiked ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 bg-white text-gray-600 hover:border-primary hover:text-primary'}`}
+            className={`inline-flex min-h-8 w-12 cursor-pointer items-center justify-center gap-1 rounded-md border px-2 text-sm transition-colors ${review.isLiked ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 bg-white text-gray-600 hover:border-primary hover:text-primary'}`}
             onClick={onToggleLike}
             type="button"
           >
             <svg
               aria-hidden="true"
-              className="size-5"
+              className="size-4"
               fill={review.isLiked ? 'currentColor' : 'none'}
               stroke="currentColor"
               strokeWidth="1.8"
@@ -153,13 +158,13 @@ export function ReviewCard({
             >
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
             </svg>
-            <span>{review.likeCount}</span>
+            <span className="tabular-nums">{review.likeCount}</span>
           </button>
         )}
         {onToggleExpanded && (
           <button
             aria-label={expanded ? '후기 접기' : '후기 펼치기'}
-            className="absolute left-1/2 grid size-10 -translate-x-1/2 place-items-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
+            className="absolute left-1/2 grid size-10 -translate-x-1/2 cursor-pointer place-items-center rounded-full text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary"
             onClick={onToggleExpanded}
             type="button"
           >
