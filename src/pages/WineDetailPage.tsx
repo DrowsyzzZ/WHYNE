@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -20,6 +20,7 @@ const tasteLabels = [
   ['당도', '드라이해요', '달아요', 'drySweet'],
   ['산미', '부드러워요', '많이셔요', 'softAcidic'],
 ] as const;
+const REVIEW_PAGE_SIZE = 5;
 
 export function WineDetailPage() {
   const { wineId } = useParams();
@@ -28,12 +29,33 @@ export function WineDetailPage() {
   const { user } = useAuth();
   const { data: wine, error, isLoading, refetch } = useWineDetail(wineId, user?.id);
   const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  const [visibleReviewCount, setVisibleReviewCount] = useState(REVIEW_PAGE_SIZE);
   const [reviewModal, setReviewModal] = useState<{
     mode: 'create' | 'edit';
     review?: WineReview;
   } | null>(null);
   const [reviewToDelete, setReviewToDelete] = useState<WineReview | null>(null);
+  const loadMoreReviewsRef = useRef<HTMLDivElement>(null);
   const refreshDetail = () => queryClient.invalidateQueries({ queryKey: ['wine', wineId] });
+
+  useEffect(() => {
+    setVisibleReviewCount(REVIEW_PAGE_SIZE);
+  }, [wineId]);
+
+  useEffect(() => {
+    const target = loadMoreReviewsRef.current;
+    if (!target || !wine || visibleReviewCount >= wine.reviews.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleReviewCount((count) => Math.min(count + REVIEW_PAGE_SIZE, wine.reviews.length));
+        }
+      },
+      { rootMargin: '240px 0px' },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [visibleReviewCount, wine]);
   const openReviewForm = () => {
     if (!user) {
       void navigate('/login', { state: { from: `/wines/${wineId}` } });
@@ -66,8 +88,10 @@ export function WineDetailPage() {
           title="와인 정보가 없어요"
         />
       </main>
-    );
+  );
   const topAromas = wine.aromas.slice(0, 4);
+  const visibleReviews = wine.reviews.slice(0, visibleReviewCount);
+  const hasMoreReviews = visibleReviewCount < wine.reviews.length;
 
   return (
     <main className="bg-white pb-24">
@@ -102,7 +126,7 @@ export function WineDetailPage() {
             </div>
             <h1 className="mt-3 text-3xl leading-tight font-bold tablet:text-4xl">{wine.name}</h1>
             <p className="mt-3 text-sm text-gray-600">{wine.region}</p>
-            <p className="mt-7 text-right text-lg font-bold">
+            <p className="mt-7 text-right text-lg font-bold tablet:pr-8">
               {wine.price.toLocaleString('ko-KR')}원
             </p>
           </div>
@@ -113,13 +137,13 @@ export function WineDetailPage() {
           <div>
             <h2 className="text-lg font-bold">어떤 맛이 나나요?</h2>
             <p className="mt-1 text-xs text-gray-600">({wine.reviewCount}명 참여)</p>
-            <div className="mt-5 space-y-4">
+            <div className="mt-5 space-y-2 desktop:space-y-4">
               {tasteLabels.map(([label, low, high, key]) => (
                 <TasteBar high={high} key={key} label={label} low={low} value={wine.taste[key]} />
               ))}
             </div>
           </div>
-          <div>
+          <div className="flex flex-col">
             <h2 className="text-lg font-bold">어떤 향이 있나요?</h2>
             <p className="mt-1 text-xs text-gray-600">({wine.reviewCount}명 참여)</p>
             {topAromas.length ? (
@@ -141,7 +165,9 @@ export function WineDetailPage() {
                 })}
               </div>
             ) : (
-              <p className="mt-5 text-sm text-gray-600">아직 등록된 향 정보가 없어요.</p>
+              <p className="mt-5 grid min-h-24 flex-1 place-items-center text-sm text-gray-600">
+                아직 등록된 향 정보가 없어요.
+              </p>
             )}
           </div>
         </section>
@@ -155,7 +181,7 @@ export function WineDetailPage() {
             </h2>
             {wine.reviews.length ? (
               <div className="mt-7">
-                {wine.reviews.map((review) => (
+                {visibleReviews.map((review) => (
                   <ReviewCard
                     expanded={expandedReviewIds.has(review.id)}
                     key={review.id}
@@ -186,6 +212,13 @@ export function WineDetailPage() {
                     review={review}
                   />
                 ))}
+                {hasMoreReviews && (
+                  <div
+                    aria-label="추가 리뷰를 불러오는 중"
+                    className="h-px"
+                    ref={loadMoreReviewsRef}
+                  />
+                )}
               </div>
             ) : (
               <div className="mt-8">
@@ -196,14 +229,14 @@ export function WineDetailPage() {
               </div>
             )}
           </div>
-          <aside className="sticky top-16 z-20 order-first -mx-4 self-start border-y border-gray-300 bg-white px-4 py-6 tablet:top-20 tablet:-mx-6 tablet:px-6 desktop:top-28 desktop:order-none desktop:mx-0 desktop:border-0 desktop:bg-transparent desktop:p-0">
+          <aside className="static z-20 order-first -mx-4 self-start bg-white px-4 py-4 tablet:-mx-6 tablet:px-6 tablet:py-5 desktop:sticky desktop:top-28 desktop:order-none desktop:mx-0 desktop:bg-transparent desktop:p-0">
             <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start gap-x-6 gap-y-7 tablet:grid-rows-[auto_1fr] tablet:gap-x-12 desktop:grid-cols-1 desktop:grid-rows-none desktop:gap-0 desktop:bg-gray-100 desktop:p-5">
               <div className="flex flex-col items-start gap-3 self-start">
                 <Rating
-                  className="[&>span]:text-2xl tablet:[&>span]:text-3xl desktop:[&>span]:text-lg"
+                  className="[&>span]:text-xl tablet:[&>span]:text-2xl desktop:[&>span]:text-lg"
                   value={wine.averageRating}
                 />
-                <b className="text-4xl leading-none tablet:text-5xl desktop:text-2xl">
+                <b className="text-2xl leading-none font-semibold tablet:text-3xl desktop:text-xl">
                   {wine.averageRating.toFixed(1)}{' '}
                   <span className="font-normal text-gray-600">/ 5.0</span>
                 </b>
@@ -219,7 +252,7 @@ export function WineDetailPage() {
                 ))}
               </div>
               <button
-                className="col-span-2 min-h-14 w-full rounded-sm bg-primary px-5 py-3 text-lg font-semibold text-gray-100 tablet:col-span-1 tablet:col-start-1 tablet:row-start-2 desktop:col-auto desktop:row-auto desktop:mt-6 desktop:min-h-12 desktop:text-sm"
+                className="col-span-2 min-h-10 w-full cursor-pointer rounded-sm bg-primary px-4 py-2 text-sm font-semibold text-gray-100 transition-colors hover:bg-primary-hover tablet:col-span-1 tablet:col-start-1 tablet:row-start-2 desktop:col-auto desktop:row-auto desktop:mt-6 desktop:min-h-12"
                 onClick={openReviewForm}
                 type="button"
               >
@@ -316,8 +349,8 @@ function TasteBar({
 }
 function RatingRow({ count, max, rating }: { count: number; max: number; rating: number }) {
   return (
-    <div className="grid grid-cols-[36px_1fr] items-center gap-2 text-base desktop:grid-cols-[28px_1fr] desktop:text-xs">
-      <span className="font-bold">{rating}점</span>
+    <div className="grid grid-cols-[36px_1fr] items-center gap-2 text-sm desktop:grid-cols-[28px_1fr] desktop:text-xs">
+      <span className="font-medium">{rating}점</span>
       <div className="h-3 overflow-hidden rounded-full bg-gray-200 desktop:h-1.5">
         <div className="h-full bg-primary" style={{ width: `${(count / max) * 100}%` }} />
       </div>

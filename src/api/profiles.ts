@@ -1,5 +1,5 @@
 import { requireSupabase } from '../lib/supabase';
-import defaultProfile from '../assets/profile/default-profile.png';
+import defaultProfile from '../assets/profile/default-profile.svg';
 
 export interface ProfileData {
   id: string;

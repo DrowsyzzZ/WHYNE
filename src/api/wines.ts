@@ -739,8 +739,8 @@ export async function getWines(filters: WineFilters): Promise<WineListItem[]> {
     .from('wines')
     .select('*')
     .gte('price', filters.minPrice)
-    .lte('price', filters.maxPrice)
     .order('created_at', { ascending: false });
+  if (Number.isFinite(filters.maxPrice)) query = query.lte('price', filters.maxPrice);
   if (filters.search.trim()) query = query.ilike('name', `%${filters.search.trim()}%`);
   if (filters.types.length) query = query.in('type', filters.types);
 
