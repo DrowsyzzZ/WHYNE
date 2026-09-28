@@ -32,7 +32,8 @@ const redirectBaseWithoutSlash = () => ({
 });
 
 export default defineConfig({
-  base: '/WHYNE/',
+  // The custom domain serves the app from its root, not `/WHYNE/`.
+  base: '/',
   plugins: [redirectBaseWithoutSlash(), react(), tailwindcss()],
   server: {
     host: '127.0.0.1',
