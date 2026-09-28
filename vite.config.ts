@@ -32,7 +32,9 @@ const redirectBaseWithoutSlash = () => ({
 });
 
 export default defineConfig({
-  base: '/WHYNE/',
+  // GitHub Pages project URLs need `/WHYNE/`, but the custom domain serves
+  // this app from its root: https://whyne.drowsylab.com/
+  base: '/',
   plugins: [redirectBaseWithoutSlash(), react(), tailwindcss()],
   server: {
     host: '127.0.0.1',
